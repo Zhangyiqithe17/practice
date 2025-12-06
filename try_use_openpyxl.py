@@ -1,6 +1,6 @@
 from openpyxl import Workbook#不需要设置样式，只需要导入这个类
 #from openpyxl.styles import Font,PatternFill#如果需要设置字体、背景颜色之类需要导入这些类
-from openpyxl.styles import Font #要设置粗体
+from openpyxl.styles import Font ,PatternFill#要设置粗体
 
 #一个工作簿（Workbook）可以有多张工作表（Worksheet）
 
@@ -26,6 +26,13 @@ for i in range(len(headers)):
     cell.font = Font(bold=True) #把bold，也就是粗体参数设置为True，然后把这个实例赋值给表示表头的每个单元格的font属性
     #除此之外，Font类的构造函数提供多种参数来控制字体样式
     cell.font = Font(bold=True,name = '黑体',size = 22,color = "FF0000",underline='double')
+    #执行代码前要先关闭Excel文件，否则执行时可能出现权限异常
+
+    #除了字体，还可以设置背景颜色，用styles子模块的PatternFill类
+    #同样，要实例化这个类,然后赋值给单元格的fill属性
+    cell.fill = PatternFill(patternType='solid',fgColor='FDF5E6')
+    # PatternFill表示填充类型，solid表示纯色，参数fgcolor用来指定填充颜色
+    #还可以设置bgcolor参数，用来指定背景色
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
 
