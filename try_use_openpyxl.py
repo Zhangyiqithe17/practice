@@ -1,5 +1,7 @@
 from openpyxl import Workbook#不需要设置样式，只需要导入这个类
-#from openpyxl.style import Font,PatternFill#如果需要设置字体、背景颜色之类需要导入这些类
+#from openpyxl.styles import Font,PatternFill#如果需要设置字体、背景颜色之类需要导入这些类
+from openpyxl.styles import Font #要设置粗体
+
 #一个工作簿（Workbook）可以有多张工作表（Worksheet）
 
 #先实例化一个对象
@@ -20,6 +22,10 @@ for i in range(len(headers)):
     #然后调用ws的cell方法，通过指定行号row和列号column，得到对应位置的Cell对象，也就是表示单元格的对象
     cell.value = header
     #然后通过设置cell对象的value属性，给单元格写入数据值,也就是列名
+
+    cell.font = Font(bold=True) #把bold，也就是粗体参数设置为True，然后把这个实例赋值给表示表头的每个单元格的font属性
+    #除此之外，Font类的构造函数提供多种参数来控制字体样式
+    cell.font = Font(bold=True,name = '黑体',size = 22,color = "FF0000",underline='double')
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
 
