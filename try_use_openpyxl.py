@@ -1,6 +1,6 @@
 from openpyxl import Workbook#不需要设置样式，只需要导入这个类
 #from openpyxl.styles import Font,PatternFill#如果需要设置字体、背景颜色之类需要导入这些类
-from openpyxl.styles import Font ,PatternFill#要设置粗体
+from openpyxl.styles import Font ,PatternFill,Border,Side#要设置粗体
 
 #一个工作簿（Workbook）可以有多张工作表（Worksheet）
 
@@ -38,7 +38,15 @@ for i in range(len(headers)):
     #接下来把填充类型改为darkup（上斜线），并设置bgcolor让斜线颜色为蓝色
     #打开表格可以看到单元格被增加了上斜线条纹填充，颜色也对应传入的十六进制
 
-    
+    #还可以设置单元格的边框样式，包括边框的线条类型和颜色
+    #这就需要送styles子模块导入Border和Side类
+    #Side类用于定义边框单边的样式属性，包括线条类型、颜色
+    #Border类用于组合四个Side对象，分别应用于单元格的上下左右边框
+    thick_side = Side(style = "thick",color = "00FF00")
+    #在Side构造函数里，参数Style用于设置线条样式，thick表示粗线，然后可以把这个单边的样式属性应用到单元格的border属性上
+    cell.border = Border(top = thick_side, right = thick_side, bottom = thick_side, left = thick_side)
+    #那么再实例化一个Border对象，上、下、左、右边框的样式，都可以通过Top、bottom、left、right参数分别设置
+
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
 
