@@ -55,16 +55,25 @@ movies = [
     [1,"肖申克的救赎",9.7,1994],
     [2,"霸王别姬",9.6,1993],
 ]
-for i in range(len(movies)):
-    movie = movies[i]
-    row = i+2#因为每个电影占一行，所以把行号row赋值为从2开始依次递增的数字
-    #在获得每部电影对应的相关信息列表以及写入的行数后，我们进一步循环电影信息列表
-    #把对应到各个单元格的数据提取出来，赋值给value变量
-    for j in range(len(movie)):
-        value = movie[j]
-        col = j+1#然后我们还需要得到每个单元格的列数，这里就是循环变量j+1
-        ws.cell(row = row,column=col,value = value)
-        #最后调用工作表的cell方法，通过对value参数进行设置，直接填入数据
+# for i in range(len(movies)):
+#     movie = movies[i]
+#     row = i+2#因为每个电影占一行，所以把行号row赋值为从2开始依次递增的数字
+#     #在获得每部电影对应的相关信息列表以及写入的行数后，我们进一步循环电影信息列表
+#     #把对应到各个单元格的数据提取出来，赋值给value变量
+#     for j in range(len(movie)):
+#         value = movie[j]
+#         col = j+1#然后我们还需要得到每个单元格的列数，这里就是循环变量j+1
+#         ws.cell(row = row,column=col,value = value)
+#         #最后调用工作表的cell方法，通过对value参数进行设置，直接填入数据
+
+#但是还有比上面这个for循环更简单的写法：
+#可以用python自带的enumerate函数
+#enumerate（可遍历对象）的用法是这样的：传入一个列表/字符串/元组等可以遍历的对象作为参数
+#它就会帮我们同时获取索引和元素值
+#但是它更进阶在于，它可以自定义起始索引，只需要再传入一个参数
+for row,movie in enumerate(movies,2):
+    for col,value in enumerate(movie,1):
+        ws.cell(row=row,column=col,value = value)
 
 
 wb.save('豆瓣电影Top250.xlsx')
