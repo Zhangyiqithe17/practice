@@ -75,6 +75,15 @@ for row,movie in enumerate(movies,2):
     for col,value in enumerate(movie,1):
         ws.cell(row=row,column=col,value = value)
 
+#如果觉得用嵌套循环给每一个单元格依次设置value很麻烦
+#也可以用工作表对象的append方法，直接在工作表的最后一行下添加一行新数据
+ws.append([3,"阿甘正传",9.5,1994])
+ws.append([4,"美丽人生",9.5,1997])
+#我们给append方法传递的参数可以是列表、元组和字典
+#列表和元组作为参数时，数据会按照顺序进行填入
+#而传递字典时，键应该是比如"A"、"B"、"C"之类的列字母，表示数据对应要写入的列
+ws.append({'A':5, 'B':"千与千寻", 'C':9.3, 'D':2001})
+
 
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
