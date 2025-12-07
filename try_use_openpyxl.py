@@ -1,6 +1,7 @@
 from openpyxl import Workbook#不需要设置样式，只需要导入这个类
 #from openpyxl.styles import Font,PatternFill#如果需要设置字体、背景颜色之类需要导入这些类
 from openpyxl.styles import Font ,PatternFill,Border,Side#要设置粗体
+from openpyxl import load_workbook
 
 #一个工作簿（Workbook）可以有多张工作表（Worksheet）
 
@@ -96,9 +97,45 @@ cell_b3_size = Side(style = "thick",color = "00FFFF")
 cell_b3.border = Border(left = cell_b3_size, right = cell_b3_size)
 
 
-
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
 
+
+#有写入就有读取
+#读取需要从openpyxl导入load_workbook函数
+#给这个load_workbook函数传入文件路径，函数会加载Excel文件并返回一个Workbook工作簿对象
+wb = load_workbook('豆瓣电影Top250.xlsx')
+#得到工作簿对象wb后，就可以从中获取工作表对象了
+#有两种常用方式来获取工作表对象，第一是通过active属性，来获得工作簿当前活动的工作表
+#活动工作表取决于Excel文件保存时的状态
+ws = wb.active
+#第二种是在工作簿对象后面跟上方括号，工作表名，来精准获取指定的工作表
+#ws = wb["豆瓣电影Top250"]
+#接下来就是获取指定单元格的值了
+#先通过在工作表对象后面紧跟索引操作符[],里面放入地址来获取工作表里指定单元格对象
+#然后通过value属性，获取单元格对象里面的值
+value_C2 = ws["C2"].value
+print(value_C2)
+
+#除了获取单个数据，我们也可以迭代所有行和列。来获取工作表里面所有数据
+#工作表对象ws的iter_rows方法会返回一个生成器，用for循环迭代它时，每次循环都会得到一个表示一行数据的元组
+#元组里包含这行的每个单元格的cell对象
+#要得到每行的单元格里的值，就可以通过元组的索引，先依次得到各个单元格对象，然后通过value属性把单元格里的值提取出来
+for i in ws.iter_rows():
+    for j in i:
+        print(j.value)
+#iter_rows方法也可以接收参数来限制最大行数和最大列数
+print("--------------------------")
+for i in ws.iter_rows(max_row=2,max_col=3):
+    for j in i:
+        print(j.value)
+#max_row指定最大行数，max_col指定最大列数
+
+#也可以在调用iter_rows方法的时候，把参数values_only设置为True
+#这样循环变量row元组里只会直接包含单元格的值，而不是单元格对象了
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+for i in ws.iter_rows(max_row=2,max_col=3,values_only=True):
+    for j in i:
+        print(j)
 
 
