@@ -30,9 +30,15 @@ for i in range(len(headers)):
 
     #除了字体，还可以设置背景颜色，用styles子模块的PatternFill类
     #同样，要实例化这个类,然后赋值给单元格的fill属性
-    cell.fill = PatternFill(patternType='solid',fgColor='FDF5E6')
+    #cell.fill = PatternFill(patternType='solid',fgColor='FDF5E6')
     # PatternFill表示填充类型，solid表示纯色，参数fgcolor用来指定填充颜色
     #还可以设置bgcolor参数，用来指定背景色
+
+    cell.fill = PatternFill(patternType='darkUp', fgColor='FDF5E6',bgColor='0000FF')
+    #接下来把填充类型改为darkup（上斜线），并设置bgcolor让斜线颜色为蓝色
+    #打开表格可以看到单元格被增加了上斜线条纹填充，颜色也对应传入的十六进制
+
+    
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
 
