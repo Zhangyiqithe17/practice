@@ -46,6 +46,26 @@ for i in range(len(headers)):
     #在Side构造函数里，参数Style用于设置线条样式，thick表示粗线，然后可以把这个单边的样式属性应用到单元格的border属性上
     cell.border = Border(top = thick_side, right = thick_side, bottom = thick_side, left = thick_side)
     #那么再实例化一个Border对象，上、下、左、右边框的样式，都可以通过Top、bottom、left、right参数分别设置
+    #如果想进一步定制边框样式，style的可选值还有dashDot（点划线）、hair（极细线）等
+
+#接下来把电影数据写入到工作表中
+#和表头类似，也是要用循环对每行中的每个单元格依次写入数据
+#首先遍历电影数据列表movies,把包含各个电影信息的列表提取出来
+movies = [
+    [1,"肖申克的救赎",9.7,1994],
+    [2,"霸王别姬",9.6,1993],
+]
+for i in range(len(movies)):
+    movie = movies[i]
+    row = i+2#因为每个电影占一行，所以把行号row赋值为从2开始依次递增的数字
+    #在获得每部电影对应的相关信息列表以及写入的行数后，我们进一步循环电影信息列表
+    #把对应到各个单元格的数据提取出来，赋值给value变量
+    for j in range(len(movie)):
+        value = movie[j]
+        col = j+1#然后我们还需要得到每个单元格的列数，这里就是循环变量j+1
+        ws.cell(row = row,column=col,value = value)
+        #最后调用工作表的cell方法，通过对value参数进行设置，直接填入数据
+
 
 wb.save('豆瓣电影Top250.xlsx')
 #数据写好后就可以用工作簿对象wb的save方法来保存excel文件了
