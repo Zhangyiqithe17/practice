@@ -1,3 +1,4 @@
+from symtable import Class
 from urllib.parse import uses_params
 
 #sys是系统Schema，新手不要动
@@ -79,8 +80,7 @@ from urllib.parse import uses_params
 #前面在用MySQL Workbench 创建Schema和表之前，我们先对MySQL数据库实例进行了连接，那么用peewee也是一样
 #连接MySQL数据库需要导入peewee的MySQLDatabase类
 
-from peewee import MySQLDatabase, Model, CharField
-
+from peewee import MySQLDatabase, Model, CharField, ForeignKeyField
 
 #实例化MySQLDatabase时，我们需要传递这几个参数
 #database：表示要连接的数据库名称
@@ -141,6 +141,16 @@ class Movie(Model):
     class Meta:
         database = db
         db_table = 'top250_douban'
+
+#还有个记录导演信息的表top250_douban_directors,所以这里也把对应的模型MovieDirectors创建出来
+class MovieDirectors(Model):
+    id = AutoField()
+    movie = IntegerField()
+    director = CharField(max_length=100)
+    class Meta:
+        database = db
+        db_table = 'top250_douban_directors'
+
 
 
 
