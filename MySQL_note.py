@@ -185,6 +185,15 @@ try:
 
     # 如果没有出现异常，我们打开Workbench连接MySQL，应该可以在Table列表中看到新创建出来的movietest表
     # 如果没看到，可以点击SCHEMAS右边的刷新图标，或者右键Tables，选怎Refresh All
+    #可以看到，为什么所有字段的NN都被勾选上了呢？，这是因为字段类被实例化的时候，null参数默认为False
+    # 所以除非我们手动设置参数null=True，否则字段都会受到NOT NULL约束
+
+    #我们还可以用peewee查询出Schema中所有的表
+    #具体方式是调用DataBase对象的get_tables()方法，这个方法会返回一个列表，每个元素都是一个表名的字符串
+
+    table_list = db.get_tables()
+    print(table_list)
+
 except Exception as e:
     print(f'连接数据库失败:{e}')
 #但是我们需要了解的是，MySQL服务器实例的连接数是有数量限制的，由MySQL配置中的max_connections参数控制
