@@ -151,8 +151,22 @@ class MovieDirectors(Model):
         database = db
         db_table = 'top250_douban_directors'
 
+#在了解如何通过peewee读写数据库之前，我们先了解一下如何通过peewee在数据库中创建表
+#我们前面在MySQL Workbench做的那些点击操作，都是可以用代码来代替的
+#首先仍然是要定义一个模型类，比如叫MovieTest，用于测试创建表，它里面的属性我们也照搬Movie模型类
+#只是Meta类里的db_table属性可以移除，peewee会把类名MovieTest转为表名movieTest
+class MovieTest(Model):
+    id = AutoField()
+    rank = IntegerField(unique=True)
+    title = CharField(max_length=100,
+                      unique=True)
+    score = DecimalField(decimal_places=1,
+                         max_digits=2)
+    year = IntegerField()
+    rating_count = IntegerField()
 
-
+    class Meta:
+        database = db
 
 
 
@@ -161,6 +175,16 @@ class MovieDirectors(Model):
 #所以我们可以用try except捕获并打印异常信息
 try:
     db.connect()
+    # 接下来实际进行创建操作，模型类create_table方法可以用来创建表
+    # 我们还可以设置safe参数为True来防止重复创建表，因为这样当表已经存在时，就不会执行创建操作了
+    # 如果创建成功的话，create_table什么都不会返回，而如果创建失败，方法会抛出异常，所以可以用try except进行捕获,让异常出现的时候程序不会中止
+    try:
+        MovieTest.create_table(safe=True)
+    except Exception as e:
+        print(f"创建表发生异常:{e}")
+
+    # 如果没有出现异常，我们打开Workbench连接MySQL，应该可以在Table列表中看到新创建出来的movietest表
+    # 如果没看到，可以点击SCHEMAS右边的刷新图标，或者右键Tables，选怎Refresh All
 except Exception as e:
     print(f'连接数据库失败:{e}')
 #但是我们需要了解的是，MySQL服务器实例的连接数是有数量限制的，由MySQL配置中的max_connections参数控制
