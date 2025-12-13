@@ -78,7 +78,10 @@ from urllib.parse import uses_params
 #首先创建一个数据库连接
 #前面在用MySQL Workbench 创建Schema和表之前，我们先对MySQL数据库实例进行了连接，那么用peewee也是一样
 #连接MySQL数据库需要导入peewee的MySQLDatabase类
-from peewee import MySQLDatabase
+
+from peewee import MySQLDatabase, Model, CharField
+
+
 #实例化MySQLDatabase时，我们需要传递这几个参数
 #database：表示要连接的数据库名称
 #在MySQL中，database也等同于Schema，但是Database会更多用来描述物理储存的层面，而Schema会更多用来描述逻辑结构，比如表的关系等
@@ -86,6 +89,26 @@ from peewee import MySQLDatabase
 #port表示MySQL的端口号
 #user表示连接数据库使用的账号，可以是前面创建的admin或root
 #password表示连接数据库使用的密码，注意要设定为对应账号的密码
+
+#先导入peewee的Model类，它表示一个可以映射到数据表的数据模型
+#然后我们要创建出对应电影数据表的类Movie，这个Movie类必须要继承peewee的Model类，让ORM框架发挥作用
+#接下来要定义类的属性，类的属性会映射到数据表的字段，并且默认会和同名的数据表字段直接对应，所以这里可直接和数据表一样的字段名
+#id、rank、title、score、year、rating_count等
+#需要注意的是，这些属性不会定义在__init__方法里，而是作为类属性，直接定义在class的下面
+#定义在_init__方法里的是对象属性，每个实例的对象属性的值是独立的，而类属性被这个类的所有实例共享
+#接下来每个属性需要被赋值为peewee的字段类的实例,所以我们需要导入这些类
+from peewee import AutoField,IntegerField,CharField,DecimalField
+#字段类包括了AutoField:自增整数主键字段
+#IntegerField:整数字段
+#CharField:字符串字段
+#DecimalField:精确小数字段
+#当然字段类型实际上还有很多，包括
+#BooleanField:布尔值字段
+#DataField:日期字段
+#DateTimeField:时间字段
+#我们可以对照数据表里的字段来添加类属性
+
+
 db = MySQLDatabase(
     database='spider_db',
     host='localhost',
@@ -93,6 +116,36 @@ db = MySQLDatabase(
     user='root',
     password = '17170709',
 )
+
+
+class Movie(Model):
+    id = AutoField()  # id就可以被赋值为AutoField，表示主键，并默认为就是自增、唯一、非空的
+    rank = IntegerField(unique=True)  # 表示排名的rank因为是整数，所以被赋值为IntegerField，另外把参数unique设置为True,和数据表里这个字段的唯一约束对应
+    title = CharField(max_length=100,
+                      unique=True)  # 表示标题的title是字符串，所以被赋值为CharField对象，以及这里也要设置max_length来定义最大长度，以及设置参数unique=True声明唯一约束
+    score = DecimalField(decimal_places=1,
+                         max_digits=2)  # 表示评分的score是精准小数，所以被赋值为DecimalField对象，参数max_digits用于设置总位数，decimal_places用于设置小数点后的位数
+    year = IntegerField()  # 表示年份的year是整数，IntegerField对象
+    rating_count = IntegerField()  # 表示评分人数的rating_count是整数，IntegerField对象
+    # 当前我们所有的类属性名和数据表里的字段名是一致的，但是如果不同的话，也可以在实例化字段对象时，通过db_column参数手动设置字段名
+    # 比如 用的是rank_num代替rank
+    # rank_num = IntegerField(unique=True,db_column = 'rank'),这样手动指定映射关系
+
+    # 在模型类的字段定义完毕后，我们通常会添加一个叫Meta的内部类，进行数据库相关配置
+    # 内部类就是在类里面定义的类
+    # Meta类中需要包含database类型和db_table属性
+    # database属性是必须要有的，要赋值为已经初始化的Database实例，比如前面创建的MySQLDatabase的实例对象db
+    #这是模型操作数据库的前提条件
+    #db_table是可选属性，用来指定要操作的表名，所以要赋值为电影表的表名top250_douban
+    #如果不定义db_table，peewee会默认操作把Class名转换为小写名字的表
+    class Meta:
+        database = db
+        db_table = 'top250_douban'
+
+
+
+
+
 #但是实例化MySQLDatabase时没有执行连接数据库的实际操作，所以我们还要调用connect方法进行连接
 #如果连接成功，connect方法不会返回任何值，但是失败的话会抛出异常
 #所以我们可以用try except捕获并打印异常信息
