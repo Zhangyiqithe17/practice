@@ -303,6 +303,21 @@ try:
     for movie_obj in select_result:
         print(f"yyid:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
 
+    #结合order_by方法、limit方法、offset方法，实现类似分页查询的效果
+    #比如我们想实现每页三条记录，就给order_by传入一个字段名作为排序依据，然后给limit传入参数3限制条数
+    # 然后继续调用offset跳过之前分页的记录，比如第一页跳过0行，第二页跳过3行，第三页跳过6行，以此类推
+    select_result = MovieTest.select().order_by(MovieTest.id).limit(3).offset(0)
+    print(f"第1页共有{len(select_result)}条记录")
+    for movie_obj in select_result:
+        print(f"id={movie_obj.id}，排名={movie_obj.rank}，标题={movie_obj.title}，"
+              f"评分={movie_obj.score}，年份={movie_obj.year}，评价人数={movie_obj.rating_count}")
+
+    select_result = MovieTest.select().order_by(MovieTest.id).limit(3).offset(3)
+    print(f"第2页共有{len(select_result)}条记录")
+    for movie_obj in select_result:
+        print(f"id={movie_obj.id}，排名={movie_obj.rank}，标题={movie_obj.title}，"
+              f"评分={movie_obj.score}，年份={movie_obj.year}，评价人数={movie_obj.rating_count}")
+
 
 
 
