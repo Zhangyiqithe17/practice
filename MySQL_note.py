@@ -297,6 +297,14 @@ try:
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
 
+    #从指定行开始返回，用offset方法
+    #offset表示跳过前n行，然后从第n+1行开始返回
+    select_result = MovieTest.select(MovieTest.rank, MovieTest.title).offset(3)
+    for movie_obj in select_result:
+        print(f"yyid:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+
+
+
 
 
 
