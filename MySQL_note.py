@@ -284,7 +284,13 @@ try:
     #打印结果中可以看到只有排名和标题对应的值是有效的，其他字段的值都没有被获取到
     #在表的数据量特别大或者某些字段的内容特别长的时候，只查询指定字段可以减少返回内容的大小
 
-    
+    #上面都是正序输出，如果想要倒序输出的话
+    #可以在调用select方法之后，可以对返回的结果继续调用order_by方法
+    #然后通过参数设置某个字段排序，以及排序的方式
+    select_result = MovieTest.select(MovieTest.rank, MovieTest.title).order_by(MovieTest.rank.desc())
+    #比如这里传入的MovieTest.rank.desc()，表示以year字段降序排序，和desc()降序相对的是asc()
+    for movie_obj in select_result:
+        print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
 
 
 except Exception as e:
