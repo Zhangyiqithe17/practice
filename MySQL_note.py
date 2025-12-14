@@ -1,6 +1,7 @@
 from symtable import Class
 from urllib.parse import uses_params
 
+from openpyxl.styles.builtins import title
 #sys是系统Schema，新手不要动
 ##还有另外两个自动创建的Schema，分别是sakila和world
 #点击上方第四个图标可以创建数据库Schema
@@ -207,6 +208,67 @@ try:
     #删除的时候仍然可以设置safe参数为True，避免由于表不存在而抛出异常
     #drop_table和create_table一样，如果删除成功的话什么都不会返回，而如果删除失败的话，方法会抛出异常，所有还是要捕获异常
     #以及为了更直观地了解表删除是否成功，我们可以在删除操作前后打印出get_tables的调用结果
+
+
+    try:
+        MovieTest.create_table(safe=True)
+    except Exception as e:
+        print(f"创建表发生异常:{e}")
+    #想要对数据库里的表新增一条记录，有多种方法可以实现
+    #第一种，是调用模型类的create方法，把属性值通过参数传递，直接写入一条记录
+    movie_obj = MovieTest.create(rank = 1,title = '肖申克的救赎',score = 9.7,year = 1994,rating_count = 3182109)
+    #因为id是自增长字段，所以调用create方法去不需要给id手动赋值，写入记录时id的值会自动被写入
+    #如果打印船运模型类的create方法返回的数据类型，可以看到就是定义的模型类
+    print(f"movie_obj:{type(movie_obj)}")
+    #以及我们可以通过返回的实例对象的属性值，了解到写入数据库里的字段值
+    #因为对象的属性值对应的是写入到表里的字段值
+    print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+    #需要注意的是，这里的参数名要对应数据模型类的属性名，而不是表的字段名
+
+    movie_obj = MovieTest.create(rank=2, title='霸王别姬', score=9.6, year=1993, rating_count=2349876)
+    print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+    #点击MovieTest表后面的最后的这个图标按钮后，就会打开查询界面，并且它自动查询表里面所有数据后，以表格形式展示
+
+    #因为title有唯一性，所以如果我们再次写入同样的记录，就会抛出异常
+
+    #除了可以用模型类的create方法插入单条记录，还可以用模型类的insert方法
+    #insert既可以接受一个字典数据作为参数，也可以像create方法那样通过参数赋值
+    #但是在调用insert之后，它只是会返回一个ModelInsert对象，此时数据还没有被写入
+    #我们还要继续调用ModelInsert 的execute方法，才是真正对数据库下达了写入指令
+    #和create不同的是，这个ModelInsert 的execute方法返回的不再是模型类对象了，而是一个int类型的值
+    #如果这个表有自增主键，就会返回新插入行的主键值，如果这个表没有自增主键，就会返回插入的行数（通常是1，因为插入了1行）
+    movie_data3= {"rank":3,'title':"泰坦尼克号",'score':9.5,'year':1997,'rating_count':2414942}
+    insert_ret = MovieTest.insert(movie_data3).execute()
+    print(f"type:{type(insert_ret)} insert_ret:{insert_ret}")
+    #如果前面有对rank写入重复值时，虽然由于UNIQUE的约束导致这条记录会写入失败，但是已经自增的id不会被回收，导致id这个值已经被用掉了
+    #所以后续新增记录的id就会从4开始
+    #另外insert除了可以接收字典作为参数外，它和create还存在的不同是：它不要求键名或参数名一定和模型类的属性名匹配
+    #只要名称和表的字段名或模型类的属性名任何一个能匹配上，就可以写入记录
+    insert_ret = MovieTest.insert(rank=5,title="千与千寻",score=9.4,year=2001,rating_count=2457573).execute()
+    print(f"type:{type(insert_ret)} insert_ret:{insert_ret}")
+
+    #想要一次性写入多条记录，可以调用模型类insert_many方法，它可以接受字典列表作为参数
+    movie_list = [
+        {"rank": 7, "title": "这个杀手不太冷", "score": 9.4, "year": 1994, "rating_count": 2490756},
+        {"rank": 8, "title": "星际穿越 ", "score": 9.4, "year": 2014, "rating_count": 2092068},
+        {"rank": 9, "title": "盗梦空间", "score": 9.4, "year": 2010, "rating_count": 2258027},
+    ]
+    result = MovieTest.insert_many(movie_list).execute()
+    print(result)
+    #调用insert_many之后，也别忘了调用execute方法
+    #另外还要注意的是：使用insert_many方法是，字典的键名就必须和模型类的属性名一致了，否则会抛出异常
+    #但是这个错误不会导致自增字段的值+1,因为还没有执行数据库操作就抛出异常而中止了
+    #result对应的是批量写入记录里面第一条的id值
+
+    #查询数据
+    #如果要通过主键id字段查询对应记录，可以使用模型类get_by_id方法，这个方法会返回对应的模型对象
+    movie_obj = MovieTest.get_by_id(7)
+    print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+    #需要注意的是，get_by_id并不是根据被命名为’id'的字段查找对应的记录，而是根据被标记为主键的字段
+    #所以即使数据表没有名为id的列，也可以调用这个方法
+    #如果查询一个不存在的主键，执行后程序会抛出一个MovieDoesNotExist异常，提示查询的数据不存在
+    # movie_obj = MovieTest.get_by_id(20)
+
 
 
 
