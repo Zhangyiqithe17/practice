@@ -269,7 +269,22 @@ try:
     #如果查询一个不存在的主键，执行后程序会抛出一个MovieDoesNotExist异常，提示查询的数据不存在
     # movie_obj = MovieTest.get_by_id(20)
 
+    #如果想查询表里面所有的记录，可以用模型类select方法，它会返回一个可迭代的ModelSelect对象，里面包含了表中所有行对应的模型对象实例
+    select_result = MovieTest.select()
+    print(f"共有{len(select_result)}条记录")
+    #所有我们可以通过for循环，依次遍历每一个对象，打印出他们各个属性的值
+    for movie_obj in select_result:
+        print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+    #上面我们的得到了所有的字段，也就是表里面所有列，但是如果只对排名和标题这两个字段感兴趣的话，可以在select方法中，把字段属性作为参数传入
+    #这样可以限制返回的内容中只包含指定字段的值
 
+    select_result = MovieTest.select(MovieTest.rank,MovieTest.title)
+    for movie_obj in select_result:
+        print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+    #打印结果中可以看到只有排名和标题对应的值是有效的，其他字段的值都没有被获取到
+    #在表的数据量特别大或者某些字段的内容特别长的时候，只查询指定字段可以减少返回内容的大小
+
+    
 
 
 except Exception as e:
