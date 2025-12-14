@@ -292,6 +292,13 @@ try:
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
 
+    #limit指定返回的行数
+    select_result = MovieTest.select(MovieTest.rank, MovieTest.title).limit(3)
+    for movie_obj in select_result:
+        print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+
+
+
 
 except Exception as e:
     print(f'连接数据库失败:{e}')
