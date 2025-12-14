@@ -108,6 +108,11 @@ from peewee import AutoField,IntegerField,CharField,DecimalField
 #DateTimeField:时间字段
 #我们可以对照数据表里的字段来添加类属性
 
+#连接数据库
+#定义模型类
+#查询所有表
+#创建指定表
+#删除指定表
 
 db = MySQLDatabase(
     database='spider_db',
@@ -190,9 +195,20 @@ try:
 
     #我们还可以用peewee查询出Schema中所有的表
     #具体方式是调用DataBase对象的get_tables()方法，这个方法会返回一个列表，每个元素都是一个表名的字符串
-
     table_list = db.get_tables()
     print(table_list)
+
+    #接着是删除表，可以用drop_table
+    try:
+        MovieTest.drop_table(safe=True)
+        print(db.get_tables())
+    except Exception as e:
+        print(f"删除表发生异常:{e}")
+    #删除的时候仍然可以设置safe参数为True，避免由于表不存在而抛出异常
+    #drop_table和create_table一样，如果删除成功的话什么都不会返回，而如果删除失败的话，方法会抛出异常，所有还是要捕获异常
+    #以及为了更直观地了解表删除是否成功，我们可以在删除操作前后打印出get_tables的调用结果
+
+
 
 except Exception as e:
     print(f'连接数据库失败:{e}')
