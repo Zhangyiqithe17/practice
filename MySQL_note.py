@@ -318,6 +318,23 @@ try:
         print(f"id={movie_obj.id}，排名={movie_obj.rank}，标题={movie_obj.title}，"
               f"评分={movie_obj.score}，年份={movie_obj.year}，评价人数={movie_obj.rating_count}")
 
+    #如何用多个字段作为组合条件，实现复杂的查询
+    #比如，我们怎么查询出年份在2000年之前，并且评分等于9.5或者9.6的电影记录呢
+    #添加筛选条件要用到where方法，在里面传入筛选条件的表达式
+    select_result = MovieTest.select().where(MovieTest.year < 2000)
+    for movie_obj in select_result:
+        print(f"T:{movie_obj.title} Y:{movie_obj.year}")
+    #要表达评分等于9.5或9.6这个条件，除了用逻辑或连接两个等于比较之外，我们也可以用集合成员操作方法 .in_
+    #它会接受一个列表作为参数，会判断值是否包含在列表中
+    select_result = MovieTest.select().where(MovieTest.score.in_([9.5,9.6]))
+    for movie_obj in select_result:
+        print(f"T:{movie_obj.title} S:{movie_obj.score}")
+
+    #把年份和评分的逻辑组合起来，用&进行连接，最终的结果是
+    select_result = MovieTest.select().where((MovieTest.year < 2000) & (MovieTest.score.in_([9.5,9.6])))
+    for movie_obj in select_result:
+        print(f"TT:{movie_obj.title} Y:{movie_obj.year}")
+
 
 
 
