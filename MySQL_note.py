@@ -345,6 +345,15 @@ try:
     result = movie_obj.save()
     print(result)
 
+    #除了可以用模型对象的save方法对某一行进行更新，还可以用模型类的update方法，来进行批量更新
+    #它可以接收关键字参数来指定要更新的字段，以及更新后的新值
+    #比如我们想要把所有记录的year字段都改成2025
+    # 但这样还没有结束，update方法会返回一个update对象，我们还要继续调用execute方法，才会实际执行更新操作
+    result = MovieTest.update(year=2025).execute()
+    #execute会返回一个整数，表示被更新的行数
+    print(result)
+
+
 
 
 
