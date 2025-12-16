@@ -189,6 +189,11 @@ try:
     except Exception as e:
         print(f"创建表发生异常:{e}")
 
+    try:
+        MovieDirectors.create_table(safe=True)
+    except Exception as e:
+        print(f"创建表发生异常:{e}")
+
     # 如果没有出现异常，我们打开Workbench连接MySQL，应该可以在Table列表中看到新创建出来的movietest表
     # 如果没看到，可以点击SCHEMAS右边的刷新图标，或者右键Tables，选怎Refresh All
     #可以看到，为什么所有字段的NN都被勾选上了呢？，这是因为字段类被实例化的时候，null参数默认为False
@@ -374,6 +379,33 @@ try:
     result = MovieTest.delete().where(MovieTest.score == 9.4).execute()
     print(result)
 
+    #前面了解了如何结束peewee做各种数据库操作，而关系型数据库还有一大优势，是事务处理
+    #可以确保一组数据操作的原子性（原子性：事务中的所有操作要么全部完成，要么全部失败，而不能部分成功部分失败）
+    #事务是保证数据一致性的关键工具，尤其是在涉及多表操作或是需要回滚机制的场景中必不可少
+    #比如，数据库中当前有两张表，一张是记录电影信息，一张是记录导演信息
+    #假如要给表里新增一部电影，这个电影数据应该同时写入两张表，而不能只写入其中一张表
+    #先在电影信息表中写入电影信息，然后在导演信息表中写入导演信息，但如果某条导演信息写入失败，会造成电影信息表写入成功，导演信息写入失败的情景
+    #或者电影信息和部分导演信息写入成功，其余导演信息写入失败的情景
+    #这样一来，数据库中的数据就不完整了，而且也不好再执行完整的写入操作，因为有一部分已经在表里了
+    #所有我们来加入数据处理逻辑，具体的写法是：with db.atomic():
+    #然后在下方缩进的代码块里，放入需要具备原子性的操作
+
+    # 事务处理
+    # 没有事务处理时，遇到异常导致数据库数据不完整
+    movie_obj = MovieTest.create(rank_num=15, title="疯狂动物城", score=9.2, year=2016, rating_count=2178626)
+    movie_id = movie_obj.id if movie_obj else None
+    if movie_id:
+        print("电影基础信息写入成功")
+        director_obj1 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+        if director_obj1:
+            print("导演1信息写入成功")
+        # 触发唯一约束（Unique），导致异常
+        director_obj2 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+        if director_obj2:
+            print("导演2信息写入成功")
+        director_obj3 = MovieDirectors.create(movie_id=movie_id, director="瑞奇·摩尔 Rich Moore")
+        if director_obj3:
+            print("导演3信息写入成功")
 
 
 
