@@ -20,6 +20,37 @@ class WriteToType(Enum):
     EXCEL = 3
     MYSQL = 4
 
+#创建一个全局变量db，用来表示数据库连接对象，然后实例化一个MySQLDatabase对象，赋值给变量db
+db = MySQLDatabase(
+    database='spider_db',
+    host='localhost',
+    port=3306,
+    user='root',
+    password = '17170709',
+)
+#接下来创建两张电影表对应的模型类
+class Movie(Model):
+    id = AutoField()
+    rank = IntegerField(unique=True)
+    title = CharField(max_length=100,
+                      unique=True)
+    score = DecimalField(decimal_places=1,
+                         max_digits=2)
+    year = IntegerField()
+    rating_count = IntegerField()
+
+    class Meta:
+        database = db
+        db_table = 'top250_douban_MYSQL'
+
+class MovieDirectors(Model):
+    id = AutoField()
+    movie = IntegerField()
+    director = CharField(max_length=100)
+    class Meta:
+        database = db
+        db_table = 'top250_douban_directors_MYSQL'
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
 }
