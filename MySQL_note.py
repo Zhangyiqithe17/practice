@@ -353,6 +353,13 @@ try:
     #execute会返回一个整数，表示被更新的行数
     print(result)
 
+    #但是一般要做的是局部修改而不是全局修改，所以会把update方法结合where方法一起用，对某些符合条件的数据才进行更新
+    #先调用update，用关键字参数传入字段名和对应的新值，然后继续调用where，里面写入我们的条件表达式
+    #在最后也不要忘了execute，让修改实际被执行
+    result = MovieTest.update(rank=2).where(MovieTest.rank == 0).execute()
+    print(result)
+
+    #当我们只想局部修改数据的时候，用模型对象的save方法还是更加保险，不容易批量改错数据
 
 
 
