@@ -8,11 +8,17 @@ from lxml import etree
 from openpyxl import Workbook
 from openpyxl.styles import Font, Border, Side
 
+#先导入需要用到的类
+from peewee import MySQLDatabase, Model
+from peewee import AutoField,CharField,IntegerField,DecimalField
+
 # 表示写入文件的类型的枚举类
+#因为MySQL是一种新的储存类型，所以在枚举类型中增加新的类型
 class WriteToType(Enum):
     CSV = 1
     JSON = 2
     EXCEL = 3
+    MYSQL = 4
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
