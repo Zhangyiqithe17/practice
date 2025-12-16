@@ -368,6 +368,12 @@ try:
     result = MovieTest.delete_by_id(2)
     print(result)
 
+    #批量删除记录
+    #调用delete时，大部分也会搭配where方法,只删除符合条件的数据
+    #以及我们也需要对delete方法返回的对象继续调用execute，操作才会被执行
+    result = MovieTest.delete().where(MovieTest.score == 9.4).execute()
+    print(result)
+
 
 
 
