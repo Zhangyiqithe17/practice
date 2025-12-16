@@ -275,9 +275,9 @@ try:
     #所有我们可以通过for循环，依次遍历每一个对象，打印出他们各个属性的值
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+
     #上面我们的得到了所有的字段，也就是表里面所有列，但是如果只对排名和标题这两个字段感兴趣的话，可以在select方法中，把字段属性作为参数传入
     #这样可以限制返回的内容中只包含指定字段的值
-
     select_result = MovieTest.select(MovieTest.rank,MovieTest.title)
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
@@ -333,7 +333,18 @@ try:
     #把年份和评分的逻辑组合起来，用&进行连接，最终的结果是
     select_result = MovieTest.select().where((MovieTest.year < 2000) & (MovieTest.score.in_([9.5,9.6])))
     for movie_obj in select_result:
-        print(f"TT:{movie_obj.title} Y:{movie_obj.year}")
+        print(f"TT:{movie_obj.title} Y:{movie_obj.year} S:{movie_obj.score}")
+
+    #修改单条记录
+    #对于通过查询获得的模型对象，我们可以直接修改对象里的属性值，然后调用模型对象的save方法，把属性对应的字段在数据库的表里进行更新
+    #所以先通过get_by_id得到那条记录对应的数据模型对象
+    movie_obj = MovieTest.get_by_id(2)
+    #然后把rank属性值赋值为None
+    movie_obj.rank = None
+    #最后调用save方法，让改动在数据库里生效,save会返回一个整数，表示本次操作影响的行数
+    result = movie_obj.save()
+    print(result)
+
 
 
 
