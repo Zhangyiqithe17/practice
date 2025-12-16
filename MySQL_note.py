@@ -407,6 +407,23 @@ try:
         if director_obj3:
             print("导演3信息写入成功")
 
+    # 使用db.atomic增加事务处理
+    # 遇到异常后实施数据回滚，确保数据一致性不被破坏
+    with db.atomic():
+        movie_obj = Movie.create(rank_num=16, title="疯狂人类城", score=9.2, year=2016, rating_count=2178626)
+        movie_id = movie_obj.id if movie_obj else None
+        if movie_id:
+            print("电影基础信息写入成功")
+            director_obj1 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+            if director_obj1:
+                print("导演1信息写入成功")
+            # 触发唯一约束（Unique），导致异常
+            director_obj2 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+            if director_obj2:
+                print("导演2信息写入成功")
+            director_obj3 = MovieDirectors.create(movie_id=movie_id, director="瑞奇·摩尔 Rich Moore")
+            if director_obj3:
+                print("导演3信息写入成功")
 
 
 
