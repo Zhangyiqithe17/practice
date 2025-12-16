@@ -45,7 +45,7 @@ class Movie(Model):
 
 class MovieDirectors(Model):
     id = AutoField()
-    movie = IntegerField()
+    movie_id = IntegerField()
     director = CharField(max_length=100)
     class Meta:
         database = db
@@ -56,11 +56,40 @@ headers = {
 }
 url = "https://movie.douban.com/top250"
 
+#接下来创建一个可以把电影数据写入到MySQL数据库的函数,只接受movies列表作为参数
+def Write_movies_to_mysql(movies):
+    try:
+        db.connect()
+    except Exception as e:
+        print(f'数据库连接失败：{e}')
+        return
+
+    #事务处理
+    with db.atomic():
+        for movie_dic in movies:
+            movie = Movie.create(rank = movie_dic['排名'],
+                                 title = movie_dic['标题'],
+                                 score = movie_dic['标题'],
+                                 year = movie_dic['年份'],
+                                 rating_count = movie_dic['评价人数'])
+            #如果create没有抛出任何异常，说明数据写入成功了，我们把写入电影的标题和记录的id1打印出来
+            print(f'电影：{movie.title} id：{movie.id}')
+            #注意这里我们没有人为捕获create方法抛出来的异常，因为这样的话db.automic才会在异常出现后自动回滚整个事务
+
+            #接下来导演记录的写入也是一样的逻辑
+            #我们从movie_dic中获取导演列表，然后依次迭代列表里面各个导演名
+            director_list = movie_dic['导演']
+            for director_name in director_list:
+                director_obj = MovieDirectors.create(director = director_name,movie_id = movie.id)
+                print(f'电影：{director_obj.movie_id} id：{director_obj.director}')
+
+
+
 
 # 储存所有电影信息到CSV文件
 def write_movies_to_csv(movies):
     with open('douban_top250_movies.csv', 'w', newline='', encoding='utf-8-sig') as f:
-        fieldnames = ["排名", "标题", "评分", "年份", "评价人数", "导演"]
+        fieldnames = ["排名", "标题", "标题", "年份", "评价人数", "导演"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(movies)
@@ -161,7 +190,7 @@ def process_movie_items(movie_item_list, movies, write_to):
         rank = get_rank(item)
         # 获取评价人数
         rating_count = get_rating_count(item)
-        print(f"排名={rank}, 标题={title}, 评分={score}, 评价人数={rating_count}")
+        # print(f"排名={rank}, 标题={title}, 评分={score}, 评价人数={rating_count}")
         # 获取年份和导演列表
         director_and_year_group_text = get_director_and_year_group_text(item)
         year = get_year(director_and_year_group_text[1])
@@ -169,7 +198,7 @@ def process_movie_items(movie_item_list, movies, write_to):
         # 创建电影信息字典
         movie_dict = create_movie_dict(rank, title, score, year, rating_count, director_list, write_to)
         movies.append(movie_dict)
-        print(f"{movie_dict=}")
+        # print(f"{movie_dict=}")
     return movies
 
 
