@@ -30,7 +30,7 @@ def get_job_region(job_item):
         "street": street,
     }
     #这样调用数据后就能得到结构化的数据，而不是一整段不规则字符串了
-    print(f'{region_dict=}')
+    # print(f'{region_dict=}')
     return region_dict
 
 
@@ -57,10 +57,14 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         print(f'找到了{len(job_item_list)}个岗位')
             # 3。提取岗位所在地
         for job_item in job_item_list:
-            get_job_region(job_item)
+            job_region_dict = get_job_region(job_item)
             #可以看到岗位所在地是一整段字符串，如果想要在数据库里做更灵活的筛选，需要进一步把它拆分成三个部分
 
             #4。提取详情页URL
+            #不能直接用class等于jobinfo__name来匹配，因为这样就无法匹配到class里包含其他值的岗位，所以要用contain函数模糊匹配
+            job_detail_url = job_item.xpath(".//a[contains(@class,'jobinfo__name')]/@href")[0]
+            #因为每个岗位只对应一个详情页，所以直接取返回列表里的第一个元素
+            print(f'{job_detail_url=}')
             #5。解析详情页
         #6。实现分页逻辑
 
