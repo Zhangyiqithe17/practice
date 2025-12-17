@@ -4,6 +4,22 @@ from curl_cffi import requests
 import time
 from lxml import etree
 
+#
+def parse_detail_age(page_url,job_region_dict):#第一个是网页url，第二个是字典，是从列表页抓取到的城市、区、街道
+    #之所以把地点字典一并传入，是因为前面已经明确这一项是以列表页为准，但其余字段都会从详情页获取
+    try:
+
+    except Exception as e:
+        #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
+        #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
+        #这样做的目的是把异常给回到调用的函数
+        #因为详情页解析失败意味着这条数据无法保证完整性，如果只是打印一下错误然后让parse_search_page继续运行，很可能会把一部分正确，一部分缺失的
+        #数据写入到数据库里，后面清洗会更麻烦
+        #现在把异常抛出，外层的parse_search_page函数就会知道异常的存在，不会继续进行数据入库，而是执行他的异常处理逻辑，也就是打印出解析失败的信息
+        
+        raise Exception(f'解析详情页异常：{e}')
+
+
 #提取岗位所在地
 def get_job_region(job_item):
     #因为xpath的返回值是一个文本列表，所以还要用[0]取出里面第一个元素
@@ -64,8 +80,9 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
             #不能直接用class等于jobinfo__name来匹配，因为这样就无法匹配到class里包含其他值的岗位，所以要用contain函数模糊匹配
             job_detail_url = job_item.xpath(".//a[contains(@class,'jobinfo__name')]/@href")[0]
             #因为每个岗位只对应一个详情页，所以直接取返回列表里的第一个元素
-            print(f'{job_detail_url=}')
+            # print(f'{job_detail_url=}')
             #5。解析详情页
+                #接下来把’请求并解析详情页'的动作独立成一个函数
         #6。实现分页逻辑
 
     except Exception as e:
