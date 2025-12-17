@@ -4,11 +4,13 @@ from curl_cffi import requests
 import time
 from lxml import etree
 
-#
+#解析详情页
 def parse_detail_age(page_url,job_region_dict):#第一个是网页url，第二个是字典，是从列表页抓取到的城市、区、街道
     #之所以把地点字典一并传入，是因为前面已经明确这一项是以列表页为准，但其余字段都会从详情页获取
     try:
-
+        response = requests.get(page_url, headers=headers)
+        response.raise_for_status()
+        tree = etree.HTML(response.text)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
@@ -82,6 +84,7 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
             #因为每个岗位只对应一个详情页，所以直接取返回列表里的第一个元素
             # print(f'{job_detail_url=}')
             #5。解析详情页
+            parse_detail_age(job_detail_url,job_region_dict)
                 #接下来把’请求并解析详情页'的动作独立成一个函数
         #6。实现分页逻辑
 
