@@ -116,11 +116,11 @@ from peewee import AutoField,IntegerField,CharField,DecimalField
 #删除指定表
 
 db = MySQLDatabase(
-    database='spider_db',
-    host='localhost',
-    port=3306,
-    user='root',
-    password = '17170709',
+    database='spider_db',#表示要连接的数据库名称
+    host='localhost',#表示数据库服务器的IP地址，参数里我们用localhost表示本地
+    port=3306,#表示MySQL的端口号
+    user='root',#表示连接数据库使用的账号
+    password = '17170709',#账号密码
 )
 
 
