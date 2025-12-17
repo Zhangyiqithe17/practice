@@ -4,6 +4,12 @@ from curl_cffi import requests
 import time
 from lxml import etree
 
+#提取岗位所在地
+def get_job_region(job_item):
+    #因为xpath的返回值是一个文本列表，所以还要用[0]取出里面第一个元素
+    region_text = job_item.xpath(".//div[@class = 'jobinfo__other-info-item'][1]/span[1]/text()")[0]
+    print(f'region_text = {region_text}')
+
 #解析搜索页面
 def parse_search_page(page_url,page_num):#两个参数，一个是页面地址，一个表示当前搜索的是第几页
     #把请求和解析的逻辑集中到函数里面
@@ -19,7 +25,14 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         #这就是网页服务器返回的HTML代码
 
         #1。将HTML内容转换为文档对象
+        tree = etree.HTML(response.text)
+        print(f'正在解析第{page_num}页')
+
         #2。提取岗位列表
+        job_item_list = tree.xpath(".//div[@class='joblist-box__iteminfo']")
+        print(f'找到了{len(job_item_list)}个岗位')
+        for job_item in job_item_list:
+            get_job_region(job_item)
             #3。提取岗位所在地
             #4。提取详情页URL
             #5。解析详情页
