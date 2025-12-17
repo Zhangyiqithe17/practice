@@ -1,19 +1,116 @@
+在检测中，切换到小箭头，点击对应元素，右键--复制--复制元素
+
+列表页的岗位信息（把光标移动到页面的岗位信息上，当高亮区域正好框住整个岗位卡片的时候点一下）
+（div）class值：joblist-box__item clearfix joblist-box__item-unlogin
+
+岗位详情页URL（用开发者工具点击岗位名称，可以看到定位到的a标签。但是列表页上有些岗位名后面有个标签，比如“新”，有些没有
+这个差异来源于他们对应的a标签所包含的class，岗位名后带额外标签的那些，对应的a标签也会有额外的class，但是无论有没有额外标签，
+它们的class里都包含了jobinfo__name 所以为了保证数据获取的完整性，统一用jobinfo__name来提取岗位详情页链接）
+a jobinfo__name
+
+下一页（开发者工具点下一页，定位到的是class等于 btn soupager__btn 的a标签，当页面处于最后一页时，这个class值会发生变化）
+<a href="https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p6" class="btn soupager__btn soupager__btn--disable" disabled="disabled">下一页</a>
+<a href="https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p5" class="btn soupager__btn">下一页</a>
+
+
+
 岗位更新时间
+<span class="summary-plane__time"><i class="iconfont icon-update-time"></i>更新于 今天</span>
+
 岗位名称
+<h3 class="summary-plane__title">python爬虫—东莞办公<!----></h3>
+
 薪酬范围（转换为纯数字格式，，如果包含绩效薪酬，那么应该拆分为独立的字段）
+<span class="summary-plane__salary">1.1-1.5万</span>
+
 岗位所在地（从列表页获取）
-要求的工作经验
-要求的学历
-雇佣方式
-招聘人数
+<div class="jobinfo__other-info-item"><img src="https://img09.zhaopin.cn/2012/other/mobile/c-pc/location.png" class="jobinfo__other-info-location-image"> <span>深圳·龙岗·坂田</span></div>
+里面的span标签（注意注意是第一个div标签，因为除了这个之外还有别的div，存的是经验和学历要求）
+
+
+<ul class="summary-plane__info">
+<li>
+<a href="//www.zhaopin.com/shenzhen/" target="_blank">深圳</a>
+<span>龙岗区</span>
+</li>
+<!---->
+<li>1-3年</li>
+<li>本科</li>
+<li>全职</li>
+<li>招1人</li>
+<!---->
+<!---->
+</ul>
+要求的工作经验（这个ul里面的第2个li标签对应了工作经验）
+要求的学历（这个ul里面的第3个li标签对应了学历）
+雇佣方式（这个ul里面的第4个li标签对应了雇佣方式）
+招聘人数（这个ul里面的第5个li标签对应了招聘人数）
+
+
 岗位标签（与岗位是一对多的关系，不同岗位的标签可能相同，所以在设计数据库可以考虑设计一张标签表，可以节省数据存储所用资源）
+<div class="describtion__skills-content">
+<span class="describtion__skills-item">Scrapy</span>
+</div>
+
 岗位描述（长文本字段）
+<div class="describtion__detail-content">有爬虫基础，使用过常见爬虫框架，如playwright，scrapy。有处理反爬虫经验，如5s盾，各类验证码等</div>
+
 详细办公地址
-岗位发布人
-岗位发布人头衔
+<span class="job-address__content-text"><i class="iconfont icon-locate"></i>深圳龙岗区软通动力科技有限公司</span>
+
+
+<div class="manager__detail">
+<h3 title="田露/人事经理" class="manager__detail-name">
+田露/人事经理</h3>
+<span class="manager__detail-label">刚刚活跃</span>
+<span class="manager__detail-label"></span>
+</div>
+岗位发布人 h3
+岗位发布人头衔 h3
+
+<div class="company">
+<img src="https://storage-public.zhaopin.cn/CompanyLogo/20100208/9DB043DFA2554A39A7B374C716F1B9B6.jpg" alt="公司Logo" title="公司Logo" class="company__avatar">
+<a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__title">软通动力信息技术(集团)股份有限公司</a>
+<!----><!----><!----><!---->
+<div class="company__detail"><button class="company__industry">
+<i class="company__size-icon company__industry-icon"></i>
+互联网,IT服务,计算机软件</button>
+<button class="company__size">
+<i class="company__size-icon"></i>
+10000人以上</button>
+<button class="company__size">
+<i class="company__size-icon company__financing-icon"></i>
+已上市</button><!----></div>
+<div class="company__description">软通动力信息技术（集团）股份有限公司（以下简称“软通动力”）是中国领先的全栈智能化产品与服务提供商，2005年成立于北京，始终坚持创新，致力于成为一家具有全球影响力的科技企业。公司提供软件与数字技术...</div>
+<a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
+</div>
 企业名称
+<div class="company__description">
+
+<div class="company__detail">
+<button class="company__industry">
+<i class="company__size-icon company__industry-icon"></i>互联网,IT服务,计算机软件</button>
+<button class="company__size"><i class="company__size-icon"></i>10000人以上</button>
+<button class="company__size">
+    <i class="company__size-icon company__financing-icon"></i>
+    已上市
+</button>
+<!---->
+</div>
 企业所属行业
+i class="company__size-icon company__industry-icon"
+
+
 企业人员规模（分为最低人数和最高人数）
+<button class="company__size"><i class="company__size-icon"></i>10000人以上</button>
+
 企业融资状态
+<i class="company__size-icon company__financing-icon">
+
 企业介绍
+<div class="company__description">
+软通动力信息技术（集团）股份有限公司（以下简称“软通动力”）是中国领先的全栈智能化产品与服务提供商，2005年成立于北京，始终坚持创新，致力于成为一家具有全球影响力的科技企业。公司提供软件与数字技术...</div>
+
 企业主页
+<a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
+
