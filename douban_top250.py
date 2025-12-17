@@ -57,9 +57,19 @@ headers = {
 url = "https://movie.douban.com/top250"
 
 #接下来创建一个可以把电影数据写入到MySQL数据库的函数,只接受movies列表作为参数
-def Write_movies_to_mysql(movies):
+def write_movies_to_mysql(movies):
     try:
         db.connect()
+        try:
+            Movie.create_table(safe=True)
+        except Exception as e:
+            print(f"创建表发生异常:{e}")
+
+        try:
+            MovieDirectors.create_table(safe=True)
+        except Exception as e:
+            print(f"创建表发生异常:{e}")
+
     except Exception as e:
         print(f'数据库连接失败：{e}')
         return
@@ -69,7 +79,7 @@ def Write_movies_to_mysql(movies):
         for movie_dic in movies:
             movie = Movie.create(rank = movie_dic['排名'],
                                  title = movie_dic['标题'],
-                                 score = movie_dic['标题'],
+                                 score = movie_dic['评分'],
                                  year = movie_dic['年份'],
                                  rating_count = movie_dic['评价人数'])
             #如果create没有抛出任何异常，说明数据写入成功了，我们把写入电影的标题和记录的id1打印出来
@@ -89,7 +99,7 @@ def Write_movies_to_mysql(movies):
 # 储存所有电影信息到CSV文件
 def write_movies_to_csv(movies):
     with open('douban_top250_movies.csv', 'w', newline='', encoding='utf-8-sig') as f:
-        fieldnames = ["排名", "标题", "标题", "年份", "评价人数", "导演"]
+        fieldnames = ["排名", "标题", "评分", "年份", "评价人数", "导演"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(movies)
@@ -174,8 +184,8 @@ def get_director_list(director_text):
     director_match = re.search(r'导演[：:]\s*(.*?)((\s{2,}主)|(\.{3}))', director_text)
     director_text = director_match.group(1).strip() if director_match else None
     director_list = director_text.split(" / ")
-    for director in director_list:
-        print(f"导演: {director}")
+    # for director in director_list:
+    #     print(f"导演: {director}")
     return director_list
 
 
@@ -212,9 +222,11 @@ def get_html_content(url_, start_=0):
 
 
 # 创建电影信息字典
+#接着修改这个函数，增加对枚举类型的判断
 def create_movie_dict(rank, title, score, year, rating_count, director_list, write_to):
-    if write_to == WriteToType.JSON:
+    if write_to == WriteToType.JSON or WriteToType.MYSQL:
         director_value = director_list
+    #在写入数据库的情况下，和写入json一样，我们需要导演值以列表而不是字符串的形式存在
     else:
         director_value = ",".join(director_list)
     movie_dict = {
@@ -242,6 +254,9 @@ def scrape_top250_movies(write_to):
             write_movies_to_json(movies)
         elif write_to == WriteToType.EXCEL:
             write_movies_to_excel(movies)
+        #然后在文件写入这里，增加一个对MySQL写入类型的判断，以及对应函数的调用
+        elif write_to == WriteToType.MYSQL:
+            write_movies_to_mysql(movies)
         else:
             print("未实现的写入文件类型：", write_to)
     except requests.RequestException as e:
@@ -249,6 +264,9 @@ def scrape_top250_movies(write_to):
     except Exception as e:
         print(f"发生错误: {e}")
 
-
+#最后为了验证写入逻辑，把主程序入口里的写入类型也修改为MySQL
 if __name__ == '__main__':
-    scrape_top250_movies(WriteToType.EXCEL)
+    scrape_top250_movies(WriteToType.MYSQL)
+
+#在workbench窗口可以手动删除记录:
+#点击要操作的某行记录，鼠标右键，点击Delete Row(s),然后点击Apply，在弹出的窗口中继续Apply、Finish
