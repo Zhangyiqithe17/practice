@@ -8,7 +8,31 @@ from lxml import etree
 def get_job_region(job_item):
     #因为xpath的返回值是一个文本列表，所以还要用[0]取出里面第一个元素
     region_text = job_item.xpath(".//div[@class = 'jobinfo__other-info-item'][1]/span[1]/text()")[0]
-    print(f'region_text = {region_text}')
+    # print(f'region_text = {region_text}')
+    #所在地三个部分是用一个特殊的符号点隔开的，所以可以用python的split方法
+    region_split_list = region_text.split("·")
+    #接下来要把列表里的内容一一对应到三个变量：city、district、street
+    #但是这里有个细节需要注意，不同岗位的地区信息可能不一样，有些岗位只有城市和区，没有写街道
+    #所以更稳妥的方法是，先把这三个变量给一个默认值为空字符串
+    city,district,street = '','',''
+    #然后用len获取分割结果的长度，根据长度来判断能不能安全取值
+    len_region_split_list= len(region_split_list)
+    if(len_region_split_list >= 1):
+        city = region_split_list[0]
+    if (len_region_split_list >= 2):
+        district = region_split_list[1]
+    if (len_region_split_list >= 3):
+        street = region_split_list[2]
+    #最后把这三个变量打包到一个字典里,然后返回
+    region_dict = {
+        "city": city,
+        "district": district,
+        "street": street,
+    }
+    #这样调用数据后就能得到结构化的数据，而不是一整段不规则字符串了
+    print(f'{region_dict=}')
+    return region_dict
+
 
 #解析搜索页面
 def parse_search_page(page_url,page_num):#两个参数，一个是页面地址，一个表示当前搜索的是第几页
@@ -31,9 +55,11 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         #2。提取岗位列表
         job_item_list = tree.xpath(".//div[@class='joblist-box__iteminfo']")
         print(f'找到了{len(job_item_list)}个岗位')
+            # 3。提取岗位所在地
         for job_item in job_item_list:
             get_job_region(job_item)
-            #3。提取岗位所在地
+            #可以看到岗位所在地是一整段字符串，如果想要在数据库里做更灵活的筛选，需要进一步把它拆分成三个部分
+
             #4。提取详情页URL
             #5。解析详情页
         #6。实现分页逻辑
