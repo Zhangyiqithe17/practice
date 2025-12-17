@@ -1,24 +1,30 @@
 # import requests
 from curl_cffi import requests
+#导入python内置time，后续用来增加请求之间的时间间隔
+import time
+from lxml import etree
 
-if __name__ == '__main__':
+#解析搜索页面
+def parse_search_page(page_url,page_num):#两个参数，一个是页面地址，一个表示当前搜索的是第几页
+    #把请求和解析的逻辑集中到函数里面
     try:
-        headers = {
-            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'
-        }
-        url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
-
         # 接下来再验证一下详情页数据，是否也是可以直接通过发送请求获取到的
         # 切换回浏览器，复制任何一个岗位详情页的URL，把他赋值给一个新变量url_detail,并替换掉requests.get里的参数
-        url_detail = 'https://www.zhaopin.com/jobdetail/CC000544460J40776127616.htm?refcode=4019&srccode=401903&preactionid=ec7bcbcd-def9-439f-8587-81f26684e0aa'
-        # response = requests.get(url, headers=headers)
-        response = requests.get(url_detail, headers=headers)
+        # url_detail = 'https://www.zhaopin.com/jobdetail/CC000544460J40776127616.htm?refcode=4019&srccode=401903&preactionid=ec7bcbcd-def9-439f-8587-81f26684e0aa'
+        response = requests.get(url, headers=headers)
+        # response = requests.get(url_detail, headers=headers)
         #运行程序后，在输出的HTML再次搜索，从结果可以看到，岗位详情页也可以用requests结合Xpath的方式抓取数据
         response.raise_for_status()
-        print(response.text)
+        # print(response.text)
         #这就是网页服务器返回的HTML代码
     except Exception as e:
         print(e)
+
+if __name__ == '__main__':
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'
+    }
+    url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
 
     #如果在运行结果里看到了完整的HTML，那么就可以进行下一步了
     #但是像现在这个代码的运行结果一样：响应的结果里只有一点点HTML，而且还可以看到像TCaptcha.js这样的关键词，就基本可以判断：
