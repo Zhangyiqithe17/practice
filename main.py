@@ -17,14 +17,24 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         response.raise_for_status()
         # print(response.text)
         #这就是网页服务器返回的HTML代码
+
+        #1。将HTML内容转换为文档对象
+        #2。提取岗位列表
+            #3。提取岗位所在地
+            #4。提取详情页URL
+            #5。解析详情页
+        #6。实现分页逻辑
+
     except Exception as e:
-        print(e)
+        print(f'解析搜索页面异常:{e}')
 
 if __name__ == '__main__':
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'
     }
     url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
+
+    parse_search_page(url,1)
 
     #如果在运行结果里看到了完整的HTML，那么就可以进行下一步了
     #但是像现在这个代码的运行结果一样：响应的结果里只有一点点HTML，而且还可以看到像TCaptcha.js这样的关键词，就基本可以判断：
