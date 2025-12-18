@@ -8,6 +8,59 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取薪酬范围 返回值为字典，包括薪酬福利、最低工资和最高工资
+def get_job_salary(tree):
+    job_salary_text= tree.xpath('//span[@class = "summary-plane__salary"]/text()')[0]
+    print(f"{job_salary_text=}")
+    if "面议" in job_salary_text:
+        salary_dict = {
+            "salary_type" : "面议",#薪酬计算方式
+            "salary_extra" : "",#附加福利
+            "salary_min": 0,
+            "salary_max": 0,
+        }
+        print(f"{salary_dict=}")
+        return salary_dict
+    #如果不是面议，我们就需要把它规整为可计算的数字
+    #包括要对以万为单位的写法和以元为单位的写法进行统一，并且吧类似13薪的附加福利拆分开进行保存
+    salary_type = "月"
+    salary_range = job_salary_text
+    if "天" in job_salary_text:
+        salary_type = "天"
+        salary_range = salary_range.replace("/天","")
+
+    #判断是否包含附件的福利薪酬
+    salary_split_list = salary_range.split("·")
+    salary_range = salary_split_list[0]
+    salary_extra = ''
+    if len(salary_split_list) > 1:
+        salary_extra = salary_split_list[1]
+
+    #将薪酬区间转换为纯数字
+    salary_format = "元"
+    if "万" in salary_range:
+        salary_format = "万"
+    #然后把里面的万和元都去掉
+    salary_range = salary_range.replace("万","").replace("元","")
+    salary_range_list = salary_range.split("-")
+    salary_min = float(salary_range_list[0])
+    salary_max = float(salary_range_list[1])
+    #单位转换
+    if salary_format == "万":
+        salary_min = salary_min * 10000
+        salary_max = salary_max * 10000
+
+    salary_dict = {
+        "salary_type": salary_type,  # 薪酬计算方式
+        "salary_extra": salary_extra,  # 附加福利
+        "salary_min": int(salary_min),
+        "salary_max": int(salary_max),
+    }
+    print(f"{salary_dict=}")
+    return salary_dict
+
+
+
 #提取岗位名称
 def get_job_name(tree):
     job_name = tree.xpath('//h3[@class = "summary-plane__title"]/text()')[0]
@@ -66,6 +119,8 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
         job_update_date = get_job_update_date(tree)
         #岗位名称
         job_name = get_job_name(tree)
+        #薪酬范围
+        job_salary_dict = get_job_salary(tree)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
