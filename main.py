@@ -8,6 +8,29 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取li标签中的文本
+def get_summary_li_text(li_elements,index):
+    if len(li_elements)  > index:
+        #如果条件成立，说明这个索引对应的li确实存在
+        #如果条件不成立，说明对应的数据项在当前岗位页面可能有缺失，直接return""
+        #这样即使缺少某个字段，爬虫也能正常运行，而不是报错中断
+        li_element = li_elements[index]
+        text_list = li_element.xpath('.//text()')
+        #拿到text_list后，还要确认它确实有内容，如果列表长度大于0，说明至少有一个文本节点
+        if len(text_list) > 0:
+            return text_list[0]
+        else:
+            return ''
+    else:
+        return ''
+
+
+#提取要求的工作经验、要求的学历、雇佣方式和招聘人数，返回字典
+def get_job_summary_info(tree):
+    #但是针对各个岗位信息，可能不是所有li标签都存在，为了避免索引越界引发异常，可以先写一个工具函数专门做文本提取
+    #如果这个索引的li不存在，直接返回空字符串，如果存在，就从中取出文本
+    li_elements = tree.xpath("//ul[@class = 'summary-plane__info']/li")
+
 #提取薪酬范围 返回值为字典，包括薪酬福利、最低工资和最高工资
 def get_job_salary(tree):
     job_salary_text= tree.xpath('//span[@class = "summary-plane__salary"]/text()')[0]
