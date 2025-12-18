@@ -2,15 +2,62 @@
 from curl_cffi import requests
 #导入python内置time，后续用来增加请求之间的时间间隔
 import time
+import re
+
+from dateutil.relativedelta import relativedelta
 from lxml import etree
+from datetime import date,datetime
+
+#提取岗位更新日期（不包含时分秒） 这个函数会返回一个date对象
+def get_job_update_date(tree):
+    date_text = tree.xpath('//span[@class="summary-plane__time"]/text()')[0]
+    # print(f"{date_text=}")
+    # 运行后会发现，有些岗位的更新时间会显示为今天，有些是几月几日，并且没有时分秒
+    #接下来需要考虑：怎么对提取出的日期文本进行解析呢
+    #而且如果跨年的时候，解析逻辑可能会报错，所以要用try exception捕捉
+    #我们的目标是：把日期字符串解析成日期对象，比如datetime.date
+    #日期对象就是为处理日期而设计的数据结构，也方便在需要的时候进行比较和计算
+    try:
+        #先调用date.today，拿到今天的日期
+        today = date.today()
+        if '今天' in date_text:
+            update_date = today
+        elif '月' in date_text and '日' in date_text:
+            #用replace把字符串里的“更新于”替换为空字符串
+            date_text = date_text.replace('更新于', '')
+            year = today.year
+            #先用正则获取到月份数字，再判断是否需要把年份减1，最后把中文日期拼接成YYYY年MM月DD日的完整字符串
+            #最后用datetime.strptime转成date对象
+            match = re.search(r"(\d+)月",date_text)
+            update_date_month = int(match.group(1))
+            if update_date_month > today.month:
+                year = today.year-1
+            date_text = f"{year}年{date_text}"
+            dt = datetime.strptime(date_text, "%Y年%m月%d日")#y一定要大写，如果是小写，就是两位的年份，会导致解析失败或被错误解析
+            #然后我们调用解析出的时间对象的date方法，取出不带时分秒的date对象
+            update_date = dt.date()
+        else:
+            #如果date_text既不是今天，又不含月和日，说明不是我们认识的格式，直接抛出异常，交给外层统一处理
+            raise Exception
+
+        #最后如果没有异常出现的话，我们打印一下结果,并返回解析出的日期对象
+        print(f"{update_date=}")
+        return update_date
+    except Exception as e:
+        # raise Exception(f"解析岗位更新时间失败，date_text：{date_text},e:{e}")
+        print(f"解析岗位更新时间失败，date_text：{date_text},e:{e}")
+
 
 #解析详情页
-def parse_detail_age(page_url,job_region_dict):#第一个是网页url，第二个是字典，是从列表页抓取到的城市、区、街道
+def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二个是字典，是从列表页抓取到的城市、区、街道
     #之所以把地点字典一并传入，是因为前面已经明确这一项是以列表页为准，但其余字段都会从详情页获取
     try:
         response = requests.get(page_url, headers=headers)
         response.raise_for_status()
         tree = etree.HTML(response.text)
+
+        #岗位更新时间
+        job_update_date = get_job_update_date(tree)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
@@ -84,7 +131,7 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
             #因为每个岗位只对应一个详情页，所以直接取返回列表里的第一个元素
             # print(f'{job_detail_url=}')
             #5。解析详情页
-            parse_detail_age(job_detail_url,job_region_dict)
+            parse_detail_page(job_detail_url,job_region_dict)
                 #接下来把’请求并解析详情页'的动作独立成一个函数
         #6。实现分页逻辑
 
