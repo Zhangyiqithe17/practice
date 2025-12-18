@@ -8,6 +8,12 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取岗位名称
+def get_job_name(tree):
+    job_name = tree.xpath('//h3[@class = "summary-plane__title"]/text()')[0]
+    print(f"{job_name=}")
+    return job_name
+
 #提取岗位更新日期（不包含时分秒） 这个函数会返回一个date对象
 def get_job_update_date(tree):
     date_text = tree.xpath('//span[@class="summary-plane__time"]/text()')[0]
@@ -41,7 +47,7 @@ def get_job_update_date(tree):
             raise Exception
 
         #最后如果没有异常出现的话，我们打印一下结果,并返回解析出的日期对象
-        print(f"{update_date=}")
+        # print(f"{update_date=}")
         return update_date
     except Exception as e:
         # raise Exception(f"解析岗位更新时间失败，date_text：{date_text},e:{e}")
@@ -58,6 +64,8 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #岗位更新时间
         job_update_date = get_job_update_date(tree)
+        #岗位名称
+        job_name = get_job_name(tree)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
