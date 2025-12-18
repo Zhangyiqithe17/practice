@@ -116,11 +116,11 @@ from peewee import AutoField,IntegerField,CharField,DecimalField
 #删除指定表
 
 db = MySQLDatabase(
-    database='spider_db',
-    host='localhost',
-    port=3306,
-    user='root',
-    password = '17170709',
+    database='spider_db',#表示要连接的数据库名称
+    host='localhost',#表示数据库服务器的IP地址，参数里我们用localhost表示本地
+    port=3306,#表示MySQL的端口号
+    user='root',#表示连接数据库使用的账号
+    password = '17170709',#账号密码
 )
 
 
@@ -186,6 +186,11 @@ try:
     # 如果创建成功的话，create_table什么都不会返回，而如果创建失败，方法会抛出异常，所以可以用try except进行捕获,让异常出现的时候程序不会中止
     try:
         MovieTest.create_table(safe=True)
+    except Exception as e:
+        print(f"创建表发生异常:{e}")
+
+    try:
+        MovieDirectors.create_table(safe=True)
     except Exception as e:
         print(f"创建表发生异常:{e}")
 
@@ -275,9 +280,9 @@ try:
     #所有我们可以通过for循环，依次遍历每一个对象，打印出他们各个属性的值
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
+
     #上面我们的得到了所有的字段，也就是表里面所有列，但是如果只对排名和标题这两个字段感兴趣的话，可以在select方法中，把字段属性作为参数传入
     #这样可以限制返回的内容中只包含指定字段的值
-
     select_result = MovieTest.select(MovieTest.rank,MovieTest.title)
     for movie_obj in select_result:
         print(f"id:{movie_obj.id},排名：{movie_obj.rank},标题:{movie_obj.title}")
@@ -317,6 +322,109 @@ try:
     for movie_obj in select_result:
         print(f"id={movie_obj.id}，排名={movie_obj.rank}，标题={movie_obj.title}，"
               f"评分={movie_obj.score}，年份={movie_obj.year}，评价人数={movie_obj.rating_count}")
+
+    #如何用多个字段作为组合条件，实现复杂的查询
+    #比如，我们怎么查询出年份在2000年之前，并且评分等于9.5或者9.6的电影记录呢
+    #添加筛选条件要用到where方法，在里面传入筛选条件的表达式
+    select_result = MovieTest.select().where(MovieTest.year < 2000)
+    for movie_obj in select_result:
+        print(f"T:{movie_obj.title} Y:{movie_obj.year}")
+    #要表达评分等于9.5或9.6这个条件，除了用逻辑或连接两个等于比较之外，我们也可以用集合成员操作方法 .in_
+    #它会接受一个列表作为参数，会判断值是否包含在列表中
+    select_result = MovieTest.select().where(MovieTest.score.in_([9.5,9.6]))
+    for movie_obj in select_result:
+        print(f"T:{movie_obj.title} S:{movie_obj.score}")
+
+    #把年份和评分的逻辑组合起来，用&进行连接，最终的结果是
+    select_result = MovieTest.select().where((MovieTest.year < 2000) & (MovieTest.score.in_([9.5,9.6])))
+    for movie_obj in select_result:
+        print(f"TT:{movie_obj.title} Y:{movie_obj.year} S:{movie_obj.score}")
+
+    #修改单条记录
+    #对于通过查询获得的模型对象，我们可以直接修改对象里的属性值，然后调用模型对象的save方法，把属性对应的字段在数据库的表里进行更新
+    #所以先通过get_by_id得到那条记录对应的数据模型对象
+    movie_obj = MovieTest.get_by_id(2)
+    #然后把rank属性值赋值为None
+    movie_obj.rank = None
+    #最后调用save方法，让改动在数据库里生效,save会返回一个整数，表示本次操作影响的行数
+    result = movie_obj.save()
+    print(result)
+
+    #除了可以用模型对象的save方法对某一行进行更新，还可以用模型类的update方法，来进行批量更新
+    #它可以接收关键字参数来指定要更新的字段，以及更新后的新值
+    #比如我们想要把所有记录的year字段都改成2025
+    # 但这样还没有结束，update方法会返回一个update对象，我们还要继续调用execute方法，才会实际执行更新操作
+    result = MovieTest.update(year=2025).execute()
+    #execute会返回一个整数，表示被更新的行数
+    print(result)
+
+    #但是一般要做的是局部修改而不是全局修改，所以会把update方法结合where方法一起用，对某些符合条件的数据才进行更新
+    #先调用update，用关键字参数传入字段名和对应的新值，然后继续调用where，里面写入我们的条件表达式
+    #在最后也不要忘了execute，让修改实际被执行
+    result = MovieTest.update(rank=2).where(MovieTest.rank == 0).execute()
+    print(result)
+
+    #当我们只想局部修改数据的时候，用模型对象的save方法还是更加保险，不容易批量改错数据
+
+    #删除单条记录
+    #如果想根据主键把某一条记录给删掉，可以通过模型对象的delete_by_id方法，参数传入主键值，来删除对应的单条记录
+    #如果执行成功，会返回1，表示删除了一条记录
+    #而如果没有匹配的记录，这个方法会返回0
+    result = MovieTest.delete_by_id(2)
+    print(result)
+
+    #批量删除记录
+    #调用delete时，大部分也会搭配where方法,只删除符合条件的数据
+    #以及我们也需要对delete方法返回的对象继续调用execute，操作才会被执行
+    result = MovieTest.delete().where(MovieTest.score == 9.4).execute()
+    print(result)
+
+    #前面了解了如何结束peewee做各种数据库操作，而关系型数据库还有一大优势，是事务处理
+    #可以确保一组数据操作的原子性（原子性：事务中的所有操作要么全部完成，要么全部失败，而不能部分成功部分失败）
+    #事务是保证数据一致性的关键工具，尤其是在涉及多表操作或是需要回滚机制的场景中必不可少
+    #比如，数据库中当前有两张表，一张是记录电影信息，一张是记录导演信息
+    #假如要给表里新增一部电影，这个电影数据应该同时写入两张表，而不能只写入其中一张表
+    #先在电影信息表中写入电影信息，然后在导演信息表中写入导演信息，但如果某条导演信息写入失败，会造成电影信息表写入成功，导演信息写入失败的情景
+    #或者电影信息和部分导演信息写入成功，其余导演信息写入失败的情景
+    #这样一来，数据库中的数据就不完整了，而且也不好再执行完整的写入操作，因为有一部分已经在表里了
+    #所有我们来加入数据处理逻辑，具体的写法是：with db.atomic():
+    #然后在下方缩进的代码块里，放入需要具备原子性的操作
+
+    # 事务处理
+    # 没有事务处理时，遇到异常导致数据库数据不完整
+    movie_obj = MovieTest.create(rank_num=15, title="疯狂动物城", score=9.2, year=2016, rating_count=2178626)
+    movie_id = movie_obj.id if movie_obj else None
+    if movie_id:
+        print("电影基础信息写入成功")
+        director_obj1 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+        if director_obj1:
+            print("导演1信息写入成功")
+        # 触发唯一约束（Unique），导致异常
+        director_obj2 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+        if director_obj2:
+            print("导演2信息写入成功")
+        director_obj3 = MovieDirectors.create(movie_id=movie_id, director="瑞奇·摩尔 Rich Moore")
+        if director_obj3:
+            print("导演3信息写入成功")
+
+    # 使用db.atomic增加事务处理
+    # 遇到异常后实施数据回滚，确保数据一致性不被破坏
+    with db.atomic():
+        movie_obj = Movie.create(rank_num=16, title="疯狂人类城", score=9.2, year=2016, rating_count=2178626)
+        movie_id = movie_obj.id if movie_obj else None
+        if movie_id:
+            print("电影基础信息写入成功")
+            director_obj1 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+            if director_obj1:
+                print("导演1信息写入成功")
+            # 触发唯一约束（Unique），导致异常
+            director_obj2 = MovieDirectors.create(movie_id=movie_id, director="拜伦·霍华德 Byron Howard")
+            if director_obj2:
+                print("导演2信息写入成功")
+            director_obj3 = MovieDirectors.create(movie_id=movie_id, director="瑞奇·摩尔 Rich Moore")
+            if director_obj3:
+                print("导演3信息写入成功")
+
 
 
 
