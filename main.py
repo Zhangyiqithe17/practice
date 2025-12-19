@@ -8,6 +8,28 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#企业主页
+def get_company_site(tree):
+    company_site = tree.xpath("//a[@class = 'company__page-site']/@href")[0]
+    # print(f'{company_site=}')
+    return company_site
+
+#企业介绍
+def get_company_desc(tree):
+    company_desc_text = tree.xpath("//div[@class = 'company__description']/text()")
+    company_desc = company_desc_text if len(company_desc_text) > 0 else ''
+    # print(f"{company_desc=}")
+    return company_desc
+
+#企业融资状态
+def get_company_funding_stage(tree):
+    company_funding_stage = tree.xpath("//button[@class = 'company__size']/text()")[1]
+    print(f"{company_funding_stage=}")
+    if len(company_funding_stage) > 0:
+        return company_funding_stage
+    else:
+        return ''
+
 #提取企业人员规模
 def get_company_size(tree):
     company_size_text = tree.xpath("//button[@class = 'company__size']/text()")[0]
@@ -27,7 +49,7 @@ def get_company_size(tree):
         "company_size_min": company_size_min,
         "company_size_max": company_size_max
     }
-    print(f"{company_size_dict=}")
+    # print(f"{company_size_dict=}")
     return company_size_dict
 
 #提取企业所属行业
@@ -117,7 +139,7 @@ def get_job_summary_info(tree):
 #提取薪酬范围 返回值为字典，包括薪酬福利、最低工资和最高工资
 def get_job_salary(tree):
     job_salary_text= tree.xpath('//span[@class = "summary-plane__salary"]/text()')[0]
-    print(f"{job_salary_text=}")
+    # print(f"{job_salary_text=}")
     if "面议" in job_salary_text:
         salary_dict = {
             "salary_type" : "面议",#薪酬计算方式
@@ -125,7 +147,7 @@ def get_job_salary(tree):
             "salary_min": 0,
             "salary_max": 0,
         }
-        print(f"{salary_dict=}")
+        # print(f"{salary_dict=}")
         return salary_dict
     #如果不是面议，我们就需要把它规整为可计算的数字
     #包括要对以万为单位的写法和以元为单位的写法进行统一，并且吧类似13薪的附加福利拆分开进行保存
@@ -170,7 +192,7 @@ def get_job_salary(tree):
 #提取岗位名称
 def get_job_name(tree):
     job_name = tree.xpath('//h3[@class = "summary-plane__title"]/text()')[0]
-    print(f"{job_name=}")
+    # print(f"{job_name=}")
     return job_name
 
 #提取岗位更新日期（不包含时分秒） 这个函数会返回一个date对象
@@ -222,7 +244,7 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
         tree = etree.HTML(response.text)
 
         #岗位更新时间
-        job_update_date = get_job_update_date(tree)
+        # job_update_date = get_job_update_date(tree)
 
         #岗位名称
         job_name = get_job_name(tree)
@@ -253,6 +275,15 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #提取企业人员规模
         company_size_dict = get_company_size(tree)
+
+        #提取企业融资状态
+        # company_funding_stage = get_company_funding_stage(tree)
+
+        #企业介绍
+        company_desc = get_company_desc(tree)
+
+        #企业主页
+        company_site = get_company_site(tree)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
@@ -337,7 +368,8 @@ if __name__ == '__main__':
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'
     }
-    url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
+    # url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
+    url = 'https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p1'
 
     parse_search_page(url,1)
 
