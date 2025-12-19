@@ -30,6 +30,24 @@ def get_job_summary_info(tree):
     #但是针对各个岗位信息，可能不是所有li标签都存在，为了避免索引越界引发异常，可以先写一个工具函数专门做文本提取
     #如果这个索引的li不存在，直接返回空字符串，如果存在，就从中取出文本
     li_elements = tree.xpath("//ul[@class = 'summary-plane__info']/li")
+    #接下来已经拿到了所有li标签，接下来就是取值
+    #因为这些字段是按照固定顺序排列的，可以用索引值来区分他们
+    #索引1对应工作经验 索引2对应学历 索引3对应雇佣方式 索引4对应招聘人数
+    req_work_experience = get_summary_li_text(li_elements,1)
+    req_education = get_summary_li_text(li_elements, 2)
+    employment_type = get_summary_li_text(li_elements, 3)
+    recruit_count_text = get_summary_li_text(li_elements, 4)
+    recruit_count_match = re.search(r'\d+', recruit_count_text)
+    recruit_count = recruit_count_match.group() if recruit_count_match else ''
+
+    summary_info_dict = {
+        "req_work_experience":req_work_experience,
+        "req_education":req_education,
+        "employment_type":employment_type,
+        "recruit_count":recruit_count
+    }
+    print(f"{summary_info_dict=}")
+    return summary_info_dict
 
 #提取薪酬范围 返回值为字典，包括薪酬福利、最低工资和最高工资
 def get_job_salary(tree):
@@ -144,6 +162,9 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
         job_name = get_job_name(tree)
         #薪酬范围
         job_salary_dict = get_job_salary(tree)
+        #要求的工作经验、要求的学历、雇佣方式和招聘人数
+        job_aummary_info_dict = get_job_summary_info(tree)
+
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息
@@ -206,7 +227,7 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         #2。提取岗位列表
         job_item_list = tree.xpath(".//div[@class='joblist-box__iteminfo']")
         print(f'找到了{len(job_item_list)}个岗位')
-            # 3。提取岗位所在地
+        # 3。提取岗位所在地
         for job_item in job_item_list:
             job_region_dict = get_job_region(job_item)
             #可以看到岗位所在地是一整段字符串，如果想要在数据库里做更灵活的筛选，需要进一步把它拆分成三个部分
