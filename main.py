@@ -8,7 +8,11 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
-
+#提取岗位地址
+def get_company_address(tree):
+    company_address = tree.xpath("//span[@class='job-address__content-text']/text()")
+    print(f"{company_address=}")
+    return company_address
 
 #提取岗位说明
 def get_job_desc(tree):
@@ -187,6 +191,9 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #岗位描述
         job_desc = get_job_desc(tree)
+
+        #企业地址
+        company_address = get_company_address(tree)
 
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
