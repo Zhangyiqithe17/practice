@@ -8,6 +8,12 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取岗位技能标签
+def get_job_skills(tree):
+    job_skills =  tree.xpath("//span[@class = 'describtion__skills-item']/text()")
+    print(f'{job_skills=}')
+    return job_skills
+
 #提取li标签中的文本
 def get_summary_li_text(li_elements,index):
     if len(li_elements)  > index:
@@ -46,7 +52,7 @@ def get_job_summary_info(tree):
         "employment_type":employment_type,
         "recruit_count":recruit_count
     }
-    print(f"{summary_info_dict=}")
+    # print(f"{summary_info_dict=}")
     return summary_info_dict
 
 #提取薪酬范围 返回值为字典，包括薪酬福利、最低工资和最高工资
@@ -97,7 +103,7 @@ def get_job_salary(tree):
         "salary_min": int(salary_min),
         "salary_max": int(salary_max),
     }
-    print(f"{salary_dict=}")
+    # print(f"{salary_dict=}")
     return salary_dict
 
 
@@ -158,12 +164,18 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #岗位更新时间
         job_update_date = get_job_update_date(tree)
+
         #岗位名称
         job_name = get_job_name(tree)
+
         #薪酬范围
         job_salary_dict = get_job_salary(tree)
+
         #要求的工作经验、要求的学历、雇佣方式和招聘人数
         job_aummary_info_dict = get_job_summary_info(tree)
+
+        #岗位技能标签
+        job_skills = get_job_skills(tree)
 
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
