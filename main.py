@@ -8,6 +8,34 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取企业人员规模
+def get_company_size(tree):
+    company_size_text = tree.xpath("//button[@class = 'company__size']/text()")[0]
+    # print(f"{company_size_text=}")
+    if "以上" in company_size_text:
+        company_size_min = int(re.search(r"(\d+)",company_size_text).group())
+        company_size_max = ''
+    elif "以下" in company_size_text:
+        company_size_max = int(re.search(r"(\d+)", company_size_text).group())
+        company_size_min = ''
+    else:
+        company_size_text = re.search(r"(\d+)-(\d+)",company_size_text)
+        company_size_min = int(company_size_text.group(1))
+        company_size_max = int(company_size_text.group(2))
+
+    company_size_dict = {
+        "company_size_min": company_size_min,
+        "company_size_max": company_size_max
+    }
+    print(f"{company_size_dict=}")
+    return company_size_dict
+
+#提取企业所属行业
+def get_company_industry(tree):
+    company_industry = tree.xpath("//button[@class = 'company__industry']/text()")[0]
+    # print(f"{company_industry=}")
+    return company_industry
+
 #提取企业名称
 def get_company_name(tree):
     company_name = tree.xpath("//a[@class='company__title']/text()")[0]
@@ -20,7 +48,7 @@ def get_job_publisher(tree):
     # print(f"{job_publisher_info=}")
     job_publisher_name = job_publisher_info.split('/')[0]
     job_publisher_position = job_publisher_info.split('/')[1]
-    print(f"{job_publisher_name=} {job_publisher_position=}")
+    # print(f"{job_publisher_name=} {job_publisher_position=}")
     job_publisher_dict = {
         "job_publisher_name":job_publisher_name,
         "job_publisher_position":job_publisher_position
@@ -30,13 +58,13 @@ def get_job_publisher(tree):
 #提取岗位地址
 def get_company_address(tree):
     company_address = tree.xpath("//span[@class='job-address__content-text']/text()")
-    print(f"{company_address=}")
+    # print(f"{company_address=}")
     return company_address
 
 #提取岗位说明
 def get_job_desc(tree):
     job_desc_text = tree.xpath('//div[@class="describtion__detail-content"]/text()')
-    print(f"{job_desc_text=}")
+    # print(f"{job_desc_text=}")
     return job_desc_text
 
 #提取岗位技能标签
@@ -220,6 +248,11 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
         #企业名称
         company_neme = get_company_name(tree)
 
+        #企业所属行业
+        company_industry = get_company_industry(tree)
+
+        #提取企业人员规模
+        company_size_dict = get_company_size(tree)
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
         #具体做法就是在except里面raise一个新的Exception,并把原始异常对象e加进报错信息

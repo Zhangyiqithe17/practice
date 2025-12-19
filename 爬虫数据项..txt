@@ -98,7 +98,7 @@ a jobinfo__name
 <!---->
 </div>
 企业所属行业
-i class="company__size-icon company__industry-icon"
+<button class="company__industry"><i class="company__size-icon company__industry-icon"></i>互联网,互联网</button>
 企业名称：
 <a href="http://www.zhaopin.com/companydetail/CZL1267255920.htm" target="_blank" class="company__title">邯郸市丛台区圣誉文化传媒有限公司</a>
 
