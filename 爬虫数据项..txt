@@ -99,7 +99,8 @@ a jobinfo__name
 </div>
 企业所属行业
 i class="company__size-icon company__industry-icon"
-
+企业名称：
+<a href="http://www.zhaopin.com/companydetail/CZL1267255920.htm" target="_blank" class="company__title">邯郸市丛台区圣誉文化传媒有限公司</a>
 
 企业人员规模（分为最低人数和最高人数）
 <button class="company__size"><i class="company__size-icon"></i>10000人以上</button>

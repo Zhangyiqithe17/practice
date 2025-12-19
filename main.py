@@ -8,6 +8,25 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+#提取企业名称
+def get_company_name(tree):
+    company_name = tree.xpath("//a[@class='company__title']/text()")[0]
+    # print(f"{company_name=}")
+    return company_name
+
+#提取岗位发布人信息
+def get_job_publisher(tree):
+    job_publisher_info = tree.xpath('//div[@class="manager__detail"]/h3/text()')[0]
+    # print(f"{job_publisher_info=}")
+    job_publisher_name = job_publisher_info.split('/')[0]
+    job_publisher_position = job_publisher_info.split('/')[1]
+    print(f"{job_publisher_name=} {job_publisher_position=}")
+    job_publisher_dict = {
+        "job_publisher_name":job_publisher_name,
+        "job_publisher_position":job_publisher_position
+    }
+    return job_publisher_dict
+
 #提取岗位地址
 def get_company_address(tree):
     company_address = tree.xpath("//span[@class='job-address__content-text']/text()")
@@ -194,6 +213,12 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #企业地址
         company_address = get_company_address(tree)
+
+        #岗位发布人信息
+        job_publisher_dict = get_job_publisher(tree)
+
+        #企业名称
+        company_neme = get_company_name(tree)
 
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
