@@ -8,10 +8,18 @@ from dateutil.relativedelta import relativedelta
 from lxml import etree
 from datetime import date,datetime
 
+
+
+#提取岗位说明
+def get_job_desc(tree):
+    job_desc_text = tree.xpath('//div[@class="describtion__detail-content"]/text()')
+    print(f"{job_desc_text=}")
+    return job_desc_text
+
 #提取岗位技能标签
 def get_job_skills(tree):
     job_skills =  tree.xpath("//span[@class = 'describtion__skills-item']/text()")
-    print(f'{job_skills=}')
+    # print(f'{job_skills=}')
     return job_skills
 
 #提取li标签中的文本
@@ -176,6 +184,9 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
 
         #岗位技能标签
         job_skills = get_job_skills(tree)
+
+        #岗位描述
+        job_desc = get_job_desc(tree)
 
     except Exception as e:
         #异常处理这块不做“吞掉异常并打印”的处理，而是把异常重新抛出
