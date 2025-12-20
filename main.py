@@ -291,7 +291,7 @@ def parse_detail_page(page_url,job_region_dict):#第一个是网页url，第二�
         #因为详情页解析失败意味着这条数据无法保证完整性，如果只是打印一下错误然后让parse_search_page继续运行，很可能会把一部分正确，一部分缺失的
         #数据写入到数据库里，后面清洗会更麻烦
         #现在把异常抛出，外层的parse_search_page函数就会知道异常的存在，不会继续进行数据入库，而是执行他的异常处理逻辑，也就是打印出解析失败的信息
-        
+
         raise Exception(f'解析详情页异常：{e}')
 
 
@@ -308,11 +308,11 @@ def get_job_region(job_item):
     city,district,street = '','',''
     #然后用len获取分割结果的长度，根据长度来判断能不能安全取值
     len_region_split_list= len(region_split_list)
-    if(len_region_split_list >= 1):
+    if len_region_split_list >= 1:
         city = region_split_list[0]
-    if (len_region_split_list >= 2):
+    if len_region_split_list >= 2:
         district = region_split_list[1]
-    if (len_region_split_list >= 3):
+    if len_region_split_list >= 3:
         street = region_split_list[2]
     #最后把这三个变量打包到一个字典里,然后返回
     region_dict = {
@@ -332,7 +332,7 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         # 接下来再验证一下详情页数据，是否也是可以直接通过发送请求获取到的
         # 切换回浏览器，复制任何一个岗位详情页的URL，把他赋值给一个新变量url_detail,并替换掉requests.get里的参数
         # url_detail = 'https://www.zhaopin.com/jobdetail/CC000544460J40776127616.htm?refcode=4019&srccode=401903&preactionid=ec7bcbcd-def9-439f-8587-81f26684e0aa'
-        response = requests.get(url, headers=headers)
+        response = requests.get(page_url, headers=headers)
         # response = requests.get(url_detail, headers=headers)
         #运行程序后，在输出的HTML再次搜索，从结果可以看到，岗位详情页也可以用requests结合Xpath的方式抓取数据
         response.raise_for_status()
@@ -362,15 +362,13 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
         #6。实现分页逻辑
 
         #先找到“下一页”按钮的class，，注意只复制btn soupager__btn这部分，因为只有当到了最后一页，class值里面才会加上后面disable这个状态标记
-        next_btn_elements = tree.xpath(".//a[@class = 'btn soupager__btn']")
+        next_btn_elements = tree.xpath("//a[@class = 'btn soupager__btn']")
         #判断是否存在下一页按钮，有就继续，没有就停
         if len(next_btn_elements) == 0:
            print(f"当前是最后一页，页码：{page_url}")
         else:
             next_btn_element = next_btn_elements[0]
-            ret = next_btn_element.xpath("./text()")[0]
-            print(f"{ret}")
-            next_btn_url = next_btn_element.xpath(".//@href")
+            next_btn_url = next_btn_element.xpath("./@href")[0]
             print(f'下一页url：{next_btn_url}')
             # #接着递归调用parse_search_page，把下一页的url和下一页的页码传进
             parse_search_page(next_btn_url,page_num+1)
@@ -378,19 +376,9 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
             time.sleep(1)#让程序暂停1秒
 
 
-        # btn_elements = tree.xpath(".//div[@class = 'soupager']/a/@href")
-        # # print(f"共有{len(btn_elements)}个btn_elements")
-        # Sum_num = len(btn_elements)
-        # # for btn_element in btn_elements:
-        # for i in range(0,Sum_num):
-        #     print(f"{btn_elements[i]=}") if btn_elements[i] else print(" ")
-        # uurl = "https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p"
-        # uuurl = f'{uurl}'+ str(page_num+1)
-        # print(uuurl)
-        # parse_search_page(uuurl,page_num+1)
-
     except Exception as e:
         print(f'解析搜索页面异常:{e}')
+
 
 if __name__ == '__main__':
     headers = {
