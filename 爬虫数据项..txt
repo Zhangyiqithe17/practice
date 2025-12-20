@@ -115,3 +115,16 @@ a jobinfo__name
 企业主页
 <a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
 <a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
+
+
+<div class="soupager">
+<a disabled="disabled" href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4" class="btn soupager__btn soupager__btn__before soupager__btn--disable">上一页</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p1" class="soupager__index soupager__index--active">1</a> <!---->
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p2" class="soupager__index">2</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p3" class="soupager__index">3</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p4" class="soupager__index">4</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p5" class="soupager__index">5</a> <!---->
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p2" class="btn soupager__btn">下一页</a>
+<div class="soupager__pagebox"><span class="soupager__pagebox__go--text">到</span>
+ <input type="text" value="" class="soupager__pagebox__goinp">
+ <button class="soupager__btn soupager__pagebox__gobtn">确定</button></div></div>

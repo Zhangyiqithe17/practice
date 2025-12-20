@@ -192,7 +192,7 @@ def get_job_salary(tree):
 #提取岗位名称
 def get_job_name(tree):
     job_name = tree.xpath('//h3[@class = "summary-plane__title"]/text()')[0]
-    # print(f"{job_name=}")
+    print(f"{job_name=}")
     return job_name
 
 #提取岗位更新日期（不包含时分秒） 这个函数会返回一个date对象
@@ -361,15 +361,44 @@ def parse_search_page(page_url,page_num):#两个参数，一个是页面地址�
                 #接下来把’请求并解析详情页'的动作独立成一个函数
         #6。实现分页逻辑
 
+        #先找到“下一页”按钮的class，，注意只复制btn soupager__btn这部分，因为只有当到了最后一页，class值里面才会加上后面disable这个状态标记
+        next_btn_elements = tree.xpath(".//a[@class = 'btn soupager__btn']")
+        #判断是否存在下一页按钮，有就继续，没有就停
+        if len(next_btn_elements) == 0:
+           print(f"当前是最后一页，页码：{page_url}")
+        else:
+            next_btn_element = next_btn_elements[0]
+            ret = next_btn_element.xpath("./text()")[0]
+            print(f"{ret}")
+            next_btn_url = next_btn_element.xpath(".//@href")
+            print(f'下一页url：{next_btn_url}')
+            # #接着递归调用parse_search_page，把下一页的url和下一页的页码传进
+            parse_search_page(next_btn_url,page_num+1)
+            # #适当休眠，降低请求频率，避免触发风控
+            time.sleep(1)#让程序暂停1秒
+
+
+        # btn_elements = tree.xpath(".//div[@class = 'soupager']/a/@href")
+        # # print(f"共有{len(btn_elements)}个btn_elements")
+        # Sum_num = len(btn_elements)
+        # # for btn_element in btn_elements:
+        # for i in range(0,Sum_num):
+        #     print(f"{btn_elements[i]=}") if btn_elements[i] else print(" ")
+        # uurl = "https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p"
+        # uuurl = f'{uurl}'+ str(page_num+1)
+        # print(uuurl)
+        # parse_search_page(uuurl,page_num+1)
+
     except Exception as e:
         print(f'解析搜索页面异常:{e}')
 
 if __name__ == '__main__':
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0'
     }
     # url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
-    url = 'https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p1'
+    url = 'https://www.zhaopin.com/sou/jl765/kwE8M8CQO/p1'
 
     parse_search_page(url,1)
 
