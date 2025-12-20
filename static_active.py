@@ -34,20 +34,60 @@ import requests
 #如果要发送GET请求，就调用requests.get,如果要发送POST请求，就requests.post
 #接下来参数传入API端点的URL，然后把相应赋值给response变量
 # import json
-response = requests.get("https://poetrydb.org/random")
+# response = requests.get("https://poetrydb.org/random")
 # print(response.status_code)
 # print(response.text)
 #导入json模块，然后调用这个库的loads方法，传入要解析的JSON字符串，就能得到解析出的Python对象
 # parsed_result = json.loads(response.text)
 #但是对于JSON响应，Requests库还提供了更方便的方法
 #我们可以调用相应对象的json方法，直接得到解析后的Python对象,那么也不需要额外导入json模块了
-parsed_result = response.json()
+# parsed_result = response.json()
 #接下来要进一步获得这首诗的标题和作者等信息，，就是针对列表或字典的操作了
-title = parsed_result[0]["title"]
-author = parsed_result[0]["author"]
-print(title)
-print(author)
+# title = parsed_result[0]["title"]
+# author = parsed_result[0]["author"]
+# print(title)
+# print(author)
 #使用API不太会受到网站外观更新的影响，API返回的数据更容易解析，通过爬虫得到网页HTML后，我们还需要通过标签去挖去需要的信息，但是API返回的格式更加结构化
 #通常API提供的数据比网页上的更加全面和准确
 #但是真正的难点在于：面对包含动态加载内容的网页时，我们怎么分析出那个才是数据的真实来源API，然后对那个来源发送请求呢？
 #这就需要我们掌握浏览器开发者工具的网络请求分析了
+
+#抓包是捕获数据包的过程，通过抓包工具，我们可以捕获和分析网络请求，特别是那些用于动态加载数据的API调用，分析后可以帮我们确定目标URL和请求内容
+#浏览器自带一个抓包工具，它是开发者工具里的network面板，之前获取headers请求头的时候有使用到
+#但是如果是期望通过抓包来获取动态加载的数据，就不止要关注请求头了，还要重点关注服务器返回的响应体
+#点击network选项卡，刷新网页，就可以看到很多新请求的出现，可以重点关注着三列：name、status和type
+#name：会显示请求资源的名称，通过名称可以初步推断资源的类型
+#status：会显示HTTP响应状态码，表示请求的成功或失败状态
+#Type：标识资源的类型类别，比如document表示HTML文档stylesheet表示CSS样式表，png、jpeg、webp等都是图片资源，script说明是JavaScript文件，fetch、xhr说明是
+#异步请求，通常用来获取动态数据
+
+#点击请求，可以看到这个请求的详细信息，这个窗口里，我们需要重点关注的是Headers选项卡和Response选项卡
+#Header选项卡通常包含三个主要部分：
+# General表示基本信息；
+# Response Headers表示服务器返回的HTTP响应头；
+# 和Requests Headers表示浏览器发送的HTTP请求头；
+
+#General里我们要看
+    #Request URL：请求资源的URL地址
+    #Request Method：请求的方法，比如是GET还是POST
+    #Status Code：响应码
+#Response Headers里，我们要看
+    #Content-Encoding：表示响应数据的压缩方法，服务器会根据客户端请求头中的Accept-Encoding字段，决定使用哪种压缩算法
+        #为什么压缩算法也值得关注呢？因为虽然Python的requests库能自动处理常见压缩格式，比如gzip、deflate，但br压缩可能需要手动解压
+        #当响应内容显示乱码或者无法解析时，就应该检查这个Content-Encoding字段
+    #Content-Type：表示返回数据的类型以及编码格式，它会决定后续我们如何解析数据
+        #比如text/html;charset=utf-8,表示返回的是UTF8的HTML源代码
+        #如果是application/json，表示返回的是JSON格式的数据
+#Requests Headers里，我们重点要关注的信息和反爬虫有关，可以有助于伪装浏览器
+    #Cookie用来储存会话信息，包括用户的登录状态、网站偏好设置等等，经常用来验证用户是否已经登录
+        #比如如果要爬虫的网页只面向已经登录的用户，我们就需要做一次登录操作，拿到登录后的Cookie值，再吧Cookie值包含在请求头里发送给服务器，来满足服务器的登录状态检查
+    #Authorization：用于身份验证，常见于需要登录的API接口，如果服务器要求有Authorization的头进行认证，而我们的爬虫没有携带它，导致无法获取数据的时候，就可以在请求头里
+        #增加Authorization对应的值
+    #User-Agent：用于标识发起请求的客户端，包括浏览器、设备、系统等等信息，是最基础的反爬虫校验点，当请求返回403状态码的时候，我们可以先尝试设置一个合法的浏览器User-Agent
+        #如果问题没解决，再依次检查Cookie、Referer或调整请求频率来应对反爬，
+    #Referer：用来标识当前请求的“来源页面”，也就是从哪个页面跳转过来，它也可以被服务器用来判断请求是否符合正常浏览逻辑，很多网站会通过判断它的值，屏蔽掉网站外部的请求
+
+#再看Response选项卡，爬虫程序要解析的内容就在里面
+#我们可以通过观察，判断程序应该选择哪种对应的解析方式
+
+
