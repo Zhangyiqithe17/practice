@@ -105,3 +105,43 @@ import requests
 #通常程序员会先用一些API调试工具，比如Postman来高效调用API
 #Postman支持可视化地构建复杂请求、一键重试和解析响应等等功能，可以在实际编程前先用Postman快速测试不同的Headers和参数，直到跑通后再开始写代码
 
+#Postman是一款非常常用的API调试工具，不仅前端会用，后端和测试也会用
+#Postman有以下这些好处：
+#1、我们可以在图形用户界面上直接调用API和查看响应结果
+#2、API信息可以保存在云端，在其他电脑登录Postman账号可以同步云端保存的API信息
+#3、可以自动生产基于Python的requests库的代码，节省手动写代码的时间
+
+#先打开官网https://www.postman.com/，先点击注册一个账号
+#然后点击顶部的new按钮，在弹出窗口里请求类型选择HTTP，在界面右侧会打开Request的编辑窗口
+#点击绿色GET的下拉菜单，我们可以切换HTTP请求方法，常用就是GET或POST
+
+#然后回到要爬取的网页，点击对应的list.json请求，然后点击Headers选项卡，General里面的的Requests URL，就是API端点URL，Request Method就是我们要选择的请求方法
+#把URL复制到Postman的URL输入框里面，以及选择API要求的请求方法(GET)，Postman会自动解析URL，把连接里面带的查询参数填写到Query Params
+#查询参数就是链接里？后面的部分 如果我们想要修改调用API时传递的查询参数，就可以直接在Query Params里修改参数对应的Value值，修改时会自动更新URL
+#然后点击Send按钮，会直接向这个URL发送一次请求，界面下方的Body里会显示响应体内容
+#返回了403状态，说明服务器拒绝了请求，看来这个接口并不是那么容易能直接访问的
+
+#接下来在Headers里增加User-Agent，模拟浏览器访问，点击Headers选项卡，上面有个数字，表示的是当前的请求头数量，但页面上默认只显示我们手动添加的Headers，工具自动添加的会被隐藏
+#点击headers标题旁边的小眼睛按钮，可以看到工具自动添加了那些请求头，这里已经存在了User-Agent，但是值并不是我们想要的，因为它非常诚实地告诉了API的服务器
+#“请求来源于Postman”，这种很容易被网站的反爬虫机制识别和拦截掉
+#工具自动生成的值我们没办法修改，但是可以填写新的值来覆盖掉自动生成的
+#先点击Hide auto-generated headers按钮，隐藏这八个自动生成的Header
+#然后从开发者工具的Network面板里复制一个User-Agent的值，粘贴到Postman，key填入User-Agent，Value填入从浏览器复制过来的值，然后点击Send按钮发送请求
+#这次相应的状态码不是403了，而是变成了400，虽然仍然没有获得想要的数据，但是至少响应体返回了JSON错误信息
+# 说明应该是通过了User-Agent的校验，但是被其他校验给拦截了
+#有个简单方法可以帮我们把Request Headers里的请求头一次性填充到Postman
+#右键点击list.json请求，在弹出的菜单里把光标滑到Copy上，然后点击出现的Copy as cURL(bash)选项，点击后我们会复制出包含全部Request Header的数据
+#然后在Postman顶部工具栏，我们点击New旁边的Import按钮，把cURL命令粘贴到文本框，然后点击Import Without Saving
+#导入Postman后会自动创建一个新请求，URL以及所有的Request Header都会自动填写到对应位置
+#点击Hearders选项卡，我们也可以看到很多自动被填充进去的Header，这里面可以取消勾选掉其中一些
+#一般比较重要的header有User-Agent、Cookie和Referer，如果涉及到登录认证的话，可能还需要增加Authorization，这个要根据API的Request Headers具体分析
+#在这个例子里，先只保留User-Agent、Cookie和Referer，然后点击Send按钮，对这个API发送一个测试请求，这次成功获取到了包含有效数据的JSON
+#那么就可以把Headers里用不到的删除了，光标划到每个数据时，后面会显示一个删除图标，点击它就可以删除
+#接下来点击顶部工具栏的Save按钮，把请求信息保存一下，那么后续登录同一个账号的时候，就不需要再次创建请求了，可以直接复用
+#在弹出的保存窗口中，填写一下这个请求的名称，以及要存入的集合的名称，如果要存入到已有的集合里，可以在下拉列表中选择
+#保存成功后，可以看到页面上请求信息的名称发生了变化，我们可以一眼看出调用的是哪个网站的哪个API
+#点击左侧导航栏的Collections选项卡，我们可以查看所有的集合列表，里面包含了刚新创建的“雪球网”集合，以及保存成功的热点话题API请求
+#Postman除了有网页版，也有电脑客户端，我们可以从https://www.postman.com/downloads/这个网址下载
+#点击下载按钮后，Postman官网会根据你操作系统自动下载对应的安装包，打开安装包后会自动安装
+#打开后登录，可以看到上面也保留了刚刚创建的新集合和已保存的请求
+
