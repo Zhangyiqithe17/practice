@@ -145,3 +145,26 @@ import requests
 #点击下载按钮后，Postman官网会根据你操作系统自动下载对应的安装包，打开安装包后会自动安装
 #打开后登录，可以看到上面也保留了刚刚创建的新集合和已保存的请求
 
+
+########################################################################################
+#Postman自动生成Python Requests代码
+#针对已经配置好的API请求，点击界面右侧代表代码的按钮，展开代码生成窗口，在选择代码语言的下拉列表里，选择Python-Requests
+#接下来窗口里就会出现和我们前面发送的请求相对应的Python代码，点击右上角的复制按钮，然后在Pycharm，把复制的代码内容粘贴到文件里
+#运行后这个Python程序成功获取到了API返回的数据，那么接下来我们就可以继续对数据进行解析，提取出我们想要的热门话题内容了
+import requests
+
+url = "https://xueqiu.com/hot_event/list.json?count=10&md5__1038=222029ad07-s%2FCPJIGcTIUIgIgUGg7kgptPwP5qvsjMKFg_kgrGIvGjygQhWSs2PJjpt2P2gXIxIGp_Xog2K2gR7PBgRg6B_JgsB0AbsuyZgeg%3DKgb6vTdfgGvT4_PtRP4gO%2F_QguvTofP%3DsKgVPGtjDPGQgGiKuPGEJC4EgBegZ_eWIrUfA%3DT%2FlsqvWC_E4cgtiIvtvg"
+
+payload = {}
+headers = {
+  'Referer': 'https://xueqiu.com/',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0',
+  'Cookie': 'acw_tc=2760779317706038002581664ef1933f8c07aa77d1c4e64dcaf6ccd429a914; xq_a_token=ca35d6d2fa5e735759056fc62797546c18062187; xqat=ca35d6d2fa5e735759056fc62797546c18062187; xq_r_token=20fe5ee5759e0e77c44c16b8d667b27857fbd677; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc3MTk4MjM4MSwiY3RtIjoxNzcwNjAzNzY2ODM4LCJjaWQiOiJkOWQwbjRBWnVwIn0.fYwl96XvBaBpov14lKA6_K85RqZSkW1g4aHDEuxlrHyMf6z8U-rbg2bCLB2Z8cBuUHXv6eg0BSuqx_6UewOPCsb7FWqe26Rvi1bR4faoGVMXMwfXB_PC9RYYUOWZI_5G1LvmFMqf3qp296LUBXACXhcvrgNur6afCGWTtEnSt2QIrOftZwCEs1pyvYwYpSLJzUa4QeTQCv60Gs2DlX5lvZhAHAX2uEh7bLuNFMcsJr5R4zhIIyudjbUq23nWrEP6I9ext6CgqL-jSOMQ2AHBBtYu3U756RzzQJf7AF64Sy42HdZAtoeWyhTO44F-Exg6ufinRsf5zwmdV5J9JadJEA; cookiesu=951770603800869; u=951770603800869; device_id=2eb8b5da75df12df60f8b66c347e6b07; Hm_lvt_1db88642e346389874251b5a1eded6e3=1770603802; HMACCOUNT=19BC2AFF0C4F76C1; smidV2=2026020910232231dbdcd6be1a7f52d13a94d2c05458de002cb40e99bd1d920; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1770604237; .thumbcache_f24b8bbe5a5934237bbc0eda20c1b6e7=XOnmADjfWnFV5feIx17sKNvLfJwt9YobOFwKueMl437b8SPjL7q5+N56xwE/sgY21hEayKk6IxrfwVTR7Hj53w%3D%3D; ssxmod_itna=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9nqDs=YxiNDAPq0iDC_WQ43RndH0eoGt0vqemK77YW48CfGGqgtWD1wu=OCR9=40cvt3gmq5gWsGEKDHxi8DB9KqeKoDeWFDCeDQxirDD4DA7oD=xDrD0Rvp8SvDYpe6BxDXxgLDGcv_OiKsIELG_0DO4Gi_IxDBp2RY6hED7eDElEEt4GCz7xDngQ4YloD964DsO0BZ4DCmkzKf88yYe6TOtMjDCKDjg2vDmemFiqr2fA6K4B54i40Aeb7GljD5Ah=mqetGxYe=BDwG0=iGCAG=0G=02zm0b4KDDpodoxnxoAyZnHV/5=Y2b_x4bWtaeTbRi8w4iqoVriKbrtRrAnqC0eT_xAm41GDD; ssxmod_itna2=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9i4DWmRi3SWfbp_A5ihe=IgBDL_uYD'
+}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)
+
+
+
