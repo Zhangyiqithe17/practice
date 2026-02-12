@@ -1,0 +1,170 @@
+#对于静态网站来说，服务器会直接把完整的HTML内容发送给浏览器，那么我们所需要的信息，通常都预先嵌入在网页HTML里等待解析
+#但是现在很多功能丰富的网站的数据，是在客户端动态生成的，也就是说
+#这类网站的内容不是在服务器上预先完整写好，而是我们在访问时，由浏览器执行JavaScript代码，向服务器发送额外请求来获取数据
+#然后在我们的浏览器窗口中实时组装成最终看到的页面
+#这就意味着我们最终获取的初始的HTML响应，只是个空壳子
+#真正有价值的数据藏在我们没有发起的后续请求里面
+#API是应用程序编程接口，定义了请求方和响应方如何进行通讯，只要请求方按照规定好的格式对API发出请求，就能够获取响应方的回复，比如所需的数据、状态码或操作结果
+#动态网页除了有客户端动态渲染的网页，也包含了服务器动态渲染的网页，也就是由服务器把动态的数据注入到HTML里
+#但从客户端来看，因为接收初始HTML的时候动态内容已经在里面了，这个输出结果和静态网页直接交付完整内容的行为是一致的
+#所以从爬虫视角来看，我们这里是把服务器动态渲染的网页和静态网页划分到一起
+#动态网页背后一个关键性技术是Ajax，表示异步网络请求，它是一种不需重新加载整个网页的情况下，能够更新部分网页的技术
+#比如我们看一些内容网站的时候，像新闻、论坛帖子、商品信息等等，可以在不刷新页面的情况下，直接下滑鼠标刷出更多的帖子，这也是异步加载的例子
+#具体来说，当我们的滚动条已经接近列表底部，继续下滑的时候，就会自动触发某些JavaScript脚本，浏览器会给服务器的API再次发送新请求，得到更多帖子内容的数据
+#然后JavaScript把这些内容插入到HTML里面
+#对于动态网页，需要分析网页的异步请求机制，才有可能获得想要的数据
+#有什么办法可以快速判断网页是静态还是动态的？浏览器就可以判断
+#在网页右键，选择“显示网页源代码”后，会打开这个网页的HTML源代码窗口，然后我们用快捷键ctrl+F搜索想要爬取的内容
+#如果在HTML源代码里我们能搜索到完整的目标数据，说明要爬取的内容是静态加载的，可以直接对网页的原始URL发送请求，然后解析返回的HTML
+#如果搜索不到，说明要爬取的内容可能是通过JavaScript动态加载的，这就需要我们进一步分析网络请求，寻找真实的数据来源URL
+
+#我们做动态爬取的核心工作之一，就是发现浏览器还调用了哪些API接口，然后模仿浏览器的样子发送相同的请求，这样我们就能直接获得我们需要的数据内容了
+#对API发送请求，需要的核心信息包括
+#1、API端点，它指的是要发送请求的URL，不同功能的API有特定的端点
+#2、请求方法，绝大多数API是基于HTTP协议的，所以也需要知道各个端点对应的HTTP方法，一般来说，GET用于获取数据，POST用于提交数据，PUT用于更新数据，DELETE用于删除数据
+#3、查询参数和请求体数据，查询参数是请求URL中的一部分，有些API端点让我们通过查询参数指定额外信息，比如，通过指定要查询的用户名来获取相应用户的信息
+    #请求体数据一般包含比查询参数更多的信息，用GET时请求体一般是空的，而用POST时，要提交的数据一般都在请求体里面
+#4、响应格式，API返回的数据可以有不同格式，比如JSON、XML等，我们需要知道返回的是什么格式，才能正确解析数据（一般来说，json格式是最常见的）
+
+#除了以上信息，还有一些也很关键，比如是否要求认证信息，是否只有认证通过的有授权的用户才能访问等等
+
+#因为绝大多数API都是基于HTTP协议的，所以我们同样可以通过Python的Requests库来构建和发送API请求
+#先导入requests库
+import requests
+#如果要发送GET请求，就调用requests.get,如果要发送POST请求，就requests.post
+#接下来参数传入API端点的URL，然后把相应赋值给response变量
+# import json
+# response = requests.get("https://poetrydb.org/random")
+# print(response.status_code)
+# print(response.text)
+#导入json模块，然后调用这个库的loads方法，传入要解析的JSON字符串，就能得到解析出的Python对象
+# parsed_result = json.loads(response.text)
+#但是对于JSON响应，Requests库还提供了更方便的方法
+#我们可以调用相应对象的json方法，直接得到解析后的Python对象,那么也不需要额外导入json模块了
+# parsed_result = response.json()
+#接下来要进一步获得这首诗的标题和作者等信息，，就是针对列表或字典的操作了
+# title = parsed_result[0]["title"]
+# author = parsed_result[0]["author"]
+# print(title)
+# print(author)
+#使用API不太会受到网站外观更新的影响，API返回的数据更容易解析，通过爬虫得到网页HTML后，我们还需要通过标签去挖去需要的信息，但是API返回的格式更加结构化
+#通常API提供的数据比网页上的更加全面和准确
+#但是真正的难点在于：面对包含动态加载内容的网页时，我们怎么分析出那个才是数据的真实来源API，然后对那个来源发送请求呢？
+#这就需要我们掌握浏览器开发者工具的网络请求分析了
+
+#抓包是捕获数据包的过程，通过抓包工具，我们可以捕获和分析网络请求，特别是那些用于动态加载数据的API调用，分析后可以帮我们确定目标URL和请求内容
+#浏览器自带一个抓包工具，它是开发者工具里的network面板，之前获取headers请求头的时候有使用到
+#但是如果是期望通过抓包来获取动态加载的数据，就不止要关注请求头了，还要重点关注服务器返回的响应体
+#点击network选项卡，刷新网页，就可以看到很多新请求的出现，可以重点关注着三列：name、status和type
+#name：会显示请求资源的名称，通过名称可以初步推断资源的类型
+#status：会显示HTTP响应状态码，表示请求的成功或失败状态
+#Type：标识资源的类型类别，比如document表示HTML文档stylesheet表示CSS样式表，png、jpeg、webp等都是图片资源，script说明是JavaScript文件，fetch、xhr说明是
+#异步请求，通常用来获取动态数据
+
+#点击请求，可以看到这个请求的详细信息，这个窗口里，我们需要重点关注的是Headers选项卡和Response选项卡
+#Header选项卡通常包含三个主要部分：
+# General表示基本信息；
+# Response Headers表示服务器返回的HTTP响应头；
+# 和Requests Headers表示浏览器发送的HTTP请求头；
+
+#General里我们要看
+    #Request URL：请求资源的URL地址
+    #Request Method：请求的方法，比如是GET还是POST
+    #Status Code：响应码
+#Response Headers里，我们要看
+    #Content-Encoding：表示响应数据的压缩方法，服务器会根据客户端请求头中的Accept-Encoding字段，决定使用哪种压缩算法
+        #为什么压缩算法也值得关注呢？因为虽然Python的requests库能自动处理常见压缩格式，比如gzip、deflate，但br压缩可能需要手动解压
+        #当响应内容显示乱码或者无法解析时，就应该检查这个Content-Encoding字段
+    #Content-Type：表示返回数据的类型以及编码格式，它会决定后续我们如何解析数据
+        #比如text/html;charset=utf-8,表示返回的是UTF8的HTML源代码
+        #如果是application/json，表示返回的是JSON格式的数据
+#Requests Headers里，我们重点要关注的信息和反爬虫有关，可以有助于伪装浏览器
+    #Cookie用来储存会话信息，包括用户的登录状态、网站偏好设置等等，经常用来验证用户是否已经登录
+        #比如如果要爬虫的网页只面向已经登录的用户，我们就需要做一次登录操作，拿到登录后的Cookie值，再吧Cookie值包含在请求头里发送给服务器，来满足服务器的登录状态检查
+    #Authorization：用于身份验证，常见于需要登录的API接口，如果服务器要求有Authorization的头进行认证，而我们的爬虫没有携带它，导致无法获取数据的时候，就可以在请求头里
+        #增加Authorization对应的值
+    #User-Agent：用于标识发起请求的客户端，包括浏览器、设备、系统等等信息，是最基础的反爬虫校验点，当请求返回403状态码的时候，我们可以先尝试设置一个合法的浏览器User-Agent
+        #如果问题没解决，再依次检查Cookie、Referer或调整请求频率来应对反爬，
+    #Referer：用来标识当前请求的“来源页面”，也就是从哪个页面跳转过来，它也可以被服务器用来判断请求是否符合正常浏览逻辑，很多网站会通过判断它的值，屏蔽掉网站外部的请求
+
+#再看Response选项卡，爬虫程序要解析的内容就在里面
+#我们可以通过观察，判断程序应该选择哪种对应的解析方式
+
+#开发者工具默认只记录在它打开后发生的网络活动，我们可以刷新页面，让页面重新加载，这样network面板就会记录所有新的请求
+#有时候可能会遇到，刷新后选项卡自动跳转到了Sources，并且页面停止了渲染，这是因为有些网页会插入debugger语句来中断代码执行
+#此时网页进入了Debug模式，执行停在了断点位置，于是暂停了页面渲染
+#那么解决方法可以是禁用所有断点（点击右上角的Deactivate breakpoints按钮，当按钮显示为带斜线的蓝色图标时，表示所有断点已禁用，页面可以继续执行）
+#然后点击调试栏的表示继续执行的图标按钮，或直接刷新页面，就可以恢复页面渲染了
+
+#可以过滤列表，让它只显示动态数据请求，通常动态数据请求是由XHR或Fetch实现的，可以在过滤工具这一行，点击Fetch/XHR
+#接着用快捷键ctrl + F，输入搜索内容后回车，点击搜索结果，可以直接打开list.json请求的Response选项卡，并且会自动定位到我们搜索的内容
+
+#下一步就是调用这个API获取“热点话题”数据
+#有些网站会对请求头的字段比如User-Agent进行校验，而获取动态数据的API校验机制会比静态网页更加复杂，比如可能有User-Agent、Referer等基础校验
+#可能有动态参数、数据签名等高级防护，或者是Cookie或Authorization等身份验证，这就要求我们做不同的尝试，调整各类参数等，直到最后成功调用API
+#通常程序员会先用一些API调试工具，比如Postman来高效调用API
+#Postman支持可视化地构建复杂请求、一键重试和解析响应等等功能，可以在实际编程前先用Postman快速测试不同的Headers和参数，直到跑通后再开始写代码
+
+#Postman是一款非常常用的API调试工具，不仅前端会用，后端和测试也会用
+#Postman有以下这些好处：
+#1、我们可以在图形用户界面上直接调用API和查看响应结果
+#2、API信息可以保存在云端，在其他电脑登录Postman账号可以同步云端保存的API信息
+#3、可以自动生产基于Python的requests库的代码，节省手动写代码的时间
+
+#先打开官网https://www.postman.com/，先点击注册一个账号
+#然后点击顶部的new按钮，在弹出窗口里请求类型选择HTTP，在界面右侧会打开Request的编辑窗口
+#点击绿色GET的下拉菜单，我们可以切换HTTP请求方法，常用就是GET或POST
+
+#然后回到要爬取的网页，点击对应的list.json请求，然后点击Headers选项卡，General里面的的Requests URL，就是API端点URL，Request Method就是我们要选择的请求方法
+#把URL复制到Postman的URL输入框里面，以及选择API要求的请求方法(GET)，Postman会自动解析URL，把连接里面带的查询参数填写到Query Params
+#查询参数就是链接里？后面的部分 如果我们想要修改调用API时传递的查询参数，就可以直接在Query Params里修改参数对应的Value值，修改时会自动更新URL
+#然后点击Send按钮，会直接向这个URL发送一次请求，界面下方的Body里会显示响应体内容
+#返回了403状态，说明服务器拒绝了请求，看来这个接口并不是那么容易能直接访问的
+
+#接下来在Headers里增加User-Agent，模拟浏览器访问，点击Headers选项卡，上面有个数字，表示的是当前的请求头数量，但页面上默认只显示我们手动添加的Headers，工具自动添加的会被隐藏
+#点击headers标题旁边的小眼睛按钮，可以看到工具自动添加了那些请求头，这里已经存在了User-Agent，但是值并不是我们想要的，因为它非常诚实地告诉了API的服务器
+#“请求来源于Postman”，这种很容易被网站的反爬虫机制识别和拦截掉
+#工具自动生成的值我们没办法修改，但是可以填写新的值来覆盖掉自动生成的
+#先点击Hide auto-generated headers按钮，隐藏这八个自动生成的Header
+#然后从开发者工具的Network面板里复制一个User-Agent的值，粘贴到Postman，key填入User-Agent，Value填入从浏览器复制过来的值，然后点击Send按钮发送请求
+#这次相应的状态码不是403了，而是变成了400，虽然仍然没有获得想要的数据，但是至少响应体返回了JSON错误信息
+# 说明应该是通过了User-Agent的校验，但是被其他校验给拦截了
+#有个简单方法可以帮我们把Request Headers里的请求头一次性填充到Postman
+#右键点击list.json请求，在弹出的菜单里把光标滑到Copy上，然后点击出现的Copy as cURL(bash)选项，点击后我们会复制出包含全部Request Header的数据
+#然后在Postman顶部工具栏，我们点击New旁边的Import按钮，把cURL命令粘贴到文本框，然后点击Import Without Saving
+#导入Postman后会自动创建一个新请求，URL以及所有的Request Header都会自动填写到对应位置
+#点击Hearders选项卡，我们也可以看到很多自动被填充进去的Header，这里面可以取消勾选掉其中一些
+#一般比较重要的header有User-Agent、Cookie和Referer，如果涉及到登录认证的话，可能还需要增加Authorization，这个要根据API的Request Headers具体分析
+#在这个例子里，先只保留User-Agent、Cookie和Referer，然后点击Send按钮，对这个API发送一个测试请求，这次成功获取到了包含有效数据的JSON
+#那么就可以把Headers里用不到的删除了，光标划到每个数据时，后面会显示一个删除图标，点击它就可以删除
+#接下来点击顶部工具栏的Save按钮，把请求信息保存一下，那么后续登录同一个账号的时候，就不需要再次创建请求了，可以直接复用
+#在弹出的保存窗口中，填写一下这个请求的名称，以及要存入的集合的名称，如果要存入到已有的集合里，可以在下拉列表中选择
+#保存成功后，可以看到页面上请求信息的名称发生了变化，我们可以一眼看出调用的是哪个网站的哪个API
+#点击左侧导航栏的Collections选项卡，我们可以查看所有的集合列表，里面包含了刚新创建的“雪球网”集合，以及保存成功的热点话题API请求
+#Postman除了有网页版，也有电脑客户端，我们可以从https://www.postman.com/downloads/这个网址下载
+#点击下载按钮后，Postman官网会根据你操作系统自动下载对应的安装包，打开安装包后会自动安装
+#打开后登录，可以看到上面也保留了刚刚创建的新集合和已保存的请求
+
+
+########################################################################################
+#Postman自动生成Python Requests代码
+#针对已经配置好的API请求，点击界面右侧代表代码的按钮，展开代码生成窗口，在选择代码语言的下拉列表里，选择Python-Requests
+#接下来窗口里就会出现和我们前面发送的请求相对应的Python代码，点击右上角的复制按钮，然后在Pycharm，把复制的代码内容粘贴到文件里
+#运行后这个Python程序成功获取到了API返回的数据，那么接下来我们就可以继续对数据进行解析，提取出我们想要的热门话题内容了
+import requests
+
+url = "https://xueqiu.com/hot_event/list.json?count=10&md5__1038=222029ad07-s%2FCPJIGcTIUIgIgUGg7kgptPwP5qvsjMKFg_kgrGIvGjygQhWSs2PJjpt2P2gXIxIGp_Xog2K2gR7PBgRg6B_JgsB0AbsuyZgeg%3DKgb6vTdfgGvT4_PtRP4gO%2F_QguvTofP%3DsKgVPGtjDPGQgGiKuPGEJC4EgBegZ_eWIrUfA%3DT%2FlsqvWC_E4cgtiIvtvg"
+
+payload = {}
+headers = {
+  'Referer': 'https://xueqiu.com/',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0',
+  'Cookie': 'acw_tc=2760779317706038002581664ef1933f8c07aa77d1c4e64dcaf6ccd429a914; xq_a_token=ca35d6d2fa5e735759056fc62797546c18062187; xqat=ca35d6d2fa5e735759056fc62797546c18062187; xq_r_token=20fe5ee5759e0e77c44c16b8d667b27857fbd677; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc3MTk4MjM4MSwiY3RtIjoxNzcwNjAzNzY2ODM4LCJjaWQiOiJkOWQwbjRBWnVwIn0.fYwl96XvBaBpov14lKA6_K85RqZSkW1g4aHDEuxlrHyMf6z8U-rbg2bCLB2Z8cBuUHXv6eg0BSuqx_6UewOPCsb7FWqe26Rvi1bR4faoGVMXMwfXB_PC9RYYUOWZI_5G1LvmFMqf3qp296LUBXACXhcvrgNur6afCGWTtEnSt2QIrOftZwCEs1pyvYwYpSLJzUa4QeTQCv60Gs2DlX5lvZhAHAX2uEh7bLuNFMcsJr5R4zhIIyudjbUq23nWrEP6I9ext6CgqL-jSOMQ2AHBBtYu3U756RzzQJf7AF64Sy42HdZAtoeWyhTO44F-Exg6ufinRsf5zwmdV5J9JadJEA; cookiesu=951770603800869; u=951770603800869; device_id=2eb8b5da75df12df60f8b66c347e6b07; Hm_lvt_1db88642e346389874251b5a1eded6e3=1770603802; HMACCOUNT=19BC2AFF0C4F76C1; smidV2=2026020910232231dbdcd6be1a7f52d13a94d2c05458de002cb40e99bd1d920; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1770604237; .thumbcache_f24b8bbe5a5934237bbc0eda20c1b6e7=XOnmADjfWnFV5feIx17sKNvLfJwt9YobOFwKueMl437b8SPjL7q5+N56xwE/sgY21hEayKk6IxrfwVTR7Hj53w%3D%3D; ssxmod_itna=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9nqDs=YxiNDAPq0iDC_WQ43RndH0eoGt0vqemK77YW48CfGGqgtWD1wu=OCR9=40cvt3gmq5gWsGEKDHxi8DB9KqeKoDeWFDCeDQxirDD4DA7oD=xDrD0Rvp8SvDYpe6BxDXxgLDGcv_OiKsIELG_0DO4Gi_IxDBp2RY6hED7eDElEEt4GCz7xDngQ4YloD964DsO0BZ4DCmkzKf88yYe6TOtMjDCKDjg2vDmemFiqr2fA6K4B54i40Aeb7GljD5Ah=mqetGxYe=BDwG0=iGCAG=0G=02zm0b4KDDpodoxnxoAyZnHV/5=Y2b_x4bWtaeTbRi8w4iqoVriKbrtRrAnqC0eT_xAm41GDD; ssxmod_itna2=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9i4DWmRi3SWfbp_A5ihe=IgBDL_uYD'
+}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)
+
+
+

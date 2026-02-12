@@ -98,8 +98,14 @@ a jobinfo__name
 <!---->
 </div>
 企业所属行业
+<<<<<<< HEAD
 i class="company__size-icon company__industry-icon"
 
+=======
+<button class="company__industry"><i class="company__size-icon company__industry-icon"></i>互联网,互联网</button>
+企业名称：
+<a href="http://www.zhaopin.com/companydetail/CZL1267255920.htm" target="_blank" class="company__title">邯郸市丛台区圣誉文化传媒有限公司</a>
+>>>>>>> 4e262b04d7ef66eee25d6affb967be3760e2d02e
 
 企业人员规模（分为最低人数和最高人数）
 <button class="company__size"><i class="company__size-icon"></i>10000人以上</button>
@@ -113,4 +119,21 @@ i class="company__size-icon company__industry-icon"
 
 企业主页
 <a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
+<<<<<<< HEAD
 
+=======
+<a href="https://www.zhaopin.com/companydetail/CZ000544460.htm" target="_blank" class="company__page-site">公司主页</a>
+
+
+<div class="soupager">
+<a disabled="disabled" href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4" class="btn soupager__btn soupager__btn__before soupager__btn--disable">上一页</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p1" class="soupager__index soupager__index--active">1</a> <!---->
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p2" class="soupager__index">2</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p3" class="soupager__index">3</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p4" class="soupager__index">4</a>
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p5" class="soupager__index">5</a> <!---->
+<a href="https://www.zhaopin.com/sou/jl765/kw01O00U80EG06G03F01N5U02JQ4/p2" class="btn soupager__btn">下一页</a>
+<div class="soupager__pagebox"><span class="soupager__pagebox__go--text">到</span>
+ <input type="text" value="" class="soupager__pagebox__goinp">
+ <button class="soupager__btn soupager__pagebox__gobtn">确定</button></div></div>
+>>>>>>> 4e262b04d7ef66eee25d6affb967be3760e2d02e
