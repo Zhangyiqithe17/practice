@@ -151,20 +151,41 @@ import requests
 #针对已经配置好的API请求，点击界面右侧代表代码的按钮，展开代码生成窗口，在选择代码语言的下拉列表里，选择Python-Requests
 #接下来窗口里就会出现和我们前面发送的请求相对应的Python代码，点击右上角的复制按钮，然后在Pycharm，把复制的代码内容粘贴到文件里
 #运行后这个Python程序成功获取到了API返回的数据，那么接下来我们就可以继续对数据进行解析，提取出我们想要的热门话题内容了
+
+#从打印的结果来看，响应体里面的数据是JSON格式的，我们可以利用Requests库的便捷功能，直接调用响应对象的JSON方法，这样就不用额外导入json模块了
+#但为了防止JSON解析出现问题，我们可用try except捕获异常
+#如果JSON被成功解析为Python字典的话，我们可以进一步提取出里面的list键所对应的值，因为这个值是一个列表，列表里的每一个元素都包含着一条热门话题的相关信息
+#假设我们的目标是获取每个热门话题的标题，那么用for循环迭代列表里面各个元素，每个循环变量topic都是字典类型，标题储蓄在tag键对应的值里
+#所以提取出来，赋值给tag变量
+#还可以做进一步解析，因为每个标题前后都有一个#，我们不想要，就可以继续调用字符串的replace方法，把“#”替换为空字符串，这样就可以达到删除效果
+#最后把提取的标题打印，运行程序
+#从打印结果来看，我们成功获取到了热门话题里的所有标题
+#虽然现在程序执行成功了，但是再过一段时间再次执行就可能会失效，因为cookie这个请求头是有时效性的，不同网站设置的Cookie有效期并不相同，通常是几个小时到几天
+#如果程序执行失败，我们可以重新在开发者工具的Network面板中，找到list.json这个请求，替换Cookie这个Header的值，然后再次执行程序就可以成功获取到数据了
+#通过这部分的学习，目前已经掌握了对动态网页的分析和获取数据的技能，可以爬取的网站又增加了不少
 import requests
 
-url = "https://xueqiu.com/hot_event/list.json?count=10&md5__1038=222029ad07-s%2FCPJIGcTIUIgIgUGg7kgptPwP5qvsjMKFg_kgrGIvGjygQhWSs2PJjpt2P2gXIxIGp_Xog2K2gR7PBgRg6B_JgsB0AbsuyZgeg%3DKgb6vTdfgGvT4_PtRP4gO%2F_QguvTofP%3DsKgVPGtjDPGQgGiKuPGEJC4EgBegZ_eWIrUfA%3DT%2FlsqvWC_E4cgtiIvtvg"
+url = "https://xueqiu.com/hot_event/list.json?count=10&md5__1038=222029ad07-6%2FAPJgFge__c4%2Fs%2FgKGkEGI4gNqi8QISP_c_kcZxQg2%2FgW_eFtQs6RcttFsWW64txT22nFgGZglPT5ZgVv_HgSvGogI%2FTigGvG6gl%2FG8oevgEgoPrt4%2FgcBgVgT2HaiGmXaZ9gc%2FWcVGcg_LI4Egvv_OreK_uQ_t6Tg4FA7qGIPBSeBcsTgIwG77bGDP2g"
 
 payload = {}
 headers = {
+  'Cookie': 'xq_a_token=d51dff9ce4c54877fd40470706d55c2fe08b4640; xqat=d51dff9ce4c54877fd40470706d55c2fe08b4640; xq_r_token=631cac5ea028b4b3ac3a2dcb79aa072b1dcc81cf; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc3MzI3ODM5MywiY3RtIjoxNzcwOTE1ODMyMjM3LCJjaWQiOiJkOWQwbjRBWnVwIn0.UkmJPBes906BAGXy-MTVPOgJ8F4kIaW8W7WiSBxlzQQP-Uvz7azjs5KfIL0-whtJ-vipbl5JVSIhL8TEzTj_wJb8zoIyE6Kt8-NCoOJMp6VcRJI4pF_AEe9C2XY_3Nz0zPm1tj33Ni16TsvwmgPGnFYByYlVxBlPP8CLxi8a9KLqwGNYDRPkyqIKlj7Te7KzPXoTbE_X2HjOHvoA1RDxo249DZ5-5ZowNT6GP2LUgMPEKbe6ETwp0P3O_meVw07xFMiiuKdYEsy2OXLZtOfYm2LhucjV3npHqmzExQcktblNWAMHnJsUW5QE-pB7E9VVQpNuUFfW3rLYG-DMVEwXyQ; cookiesu=661770915884001; u=661770915884001; device_id=ec5af5d0050c7e43b3d2020b1a3314ba; Hm_lvt_1db88642e346389874251b5a1eded6e3=1770886830; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1770915888; .thumbcache_f24b8bbe5a5934237bbc0eda20c1b6e7=RFfd7JuvD+wN3SGxudOlQ0ImPmiLWkVZ15PpKBKR7lHajuA+B2OPsOYccFuKDEPM6W0n03m4gQHktoUWZ2Sgvw%3D%3D; acw_tc=276077d117709677559263286e82c7e26d245101832dd49d9e5ca8fc5703a7; ssxmod_itna=1-Yq0O0Iq_r5PGxeI4mq7Qi=QD=e40QGkDl4BtGRDeq7tDRDFqApxDHDIhFgA1WoQlxpqhYjx70r7SxGNP3xA5Dn_x7YDt=3Fv5ZK/iwIIq4rrrNQ9tjm0h=d2nzgNyNFtjo84LNGrCYyjrybCOKDHxi8DBI=qQ4xwDiiFx0rD0eDPxDYDG4DopYDn14DjxDdO/EAwUoDbxi3O4iaDGeDepgmDYHeDDHW5823OzG=N0gqDGyqdVG=HbxD4xk65IMoFDf=cRiID7y3DlPKGkQXhN/qvFL9QBSbT40k0q0Owz4fo8x=CI3EUtRDCTD5xH3ib8_=WDxA0K8FkDBD007z0K7YoK0DzGxj2K7ehYYYg4DG3mGjw=3znuzBTst3d37i2jtC2KhDxsgDeGQZA5VYYqEYjoe3xqWiYKo_=fGWiDD; ssxmod_itna2=1-Yq0O0Iq_r5PGxeI4mq7Qi=QD=e40QGkDl4BtGRDeq7tDRDFqApxDHDIhFgA1WoQlxpqhYjx70r7KxDfrNKge8nvNanMH0hPoQWocEtPD; acw_tc=2f3478c217709687864602205e9359e7547b1481b0a8b649727476358c0054',
   'Referer': 'https://xueqiu.com/',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0',
-  'Cookie': 'acw_tc=2760779317706038002581664ef1933f8c07aa77d1c4e64dcaf6ccd429a914; xq_a_token=ca35d6d2fa5e735759056fc62797546c18062187; xqat=ca35d6d2fa5e735759056fc62797546c18062187; xq_r_token=20fe5ee5759e0e77c44c16b8d667b27857fbd677; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc3MTk4MjM4MSwiY3RtIjoxNzcwNjAzNzY2ODM4LCJjaWQiOiJkOWQwbjRBWnVwIn0.fYwl96XvBaBpov14lKA6_K85RqZSkW1g4aHDEuxlrHyMf6z8U-rbg2bCLB2Z8cBuUHXv6eg0BSuqx_6UewOPCsb7FWqe26Rvi1bR4faoGVMXMwfXB_PC9RYYUOWZI_5G1LvmFMqf3qp296LUBXACXhcvrgNur6afCGWTtEnSt2QIrOftZwCEs1pyvYwYpSLJzUa4QeTQCv60Gs2DlX5lvZhAHAX2uEh7bLuNFMcsJr5R4zhIIyudjbUq23nWrEP6I9ext6CgqL-jSOMQ2AHBBtYu3U756RzzQJf7AF64Sy42HdZAtoeWyhTO44F-Exg6ufinRsf5zwmdV5J9JadJEA; cookiesu=951770603800869; u=951770603800869; device_id=2eb8b5da75df12df60f8b66c347e6b07; Hm_lvt_1db88642e346389874251b5a1eded6e3=1770603802; HMACCOUNT=19BC2AFF0C4F76C1; smidV2=2026020910232231dbdcd6be1a7f52d13a94d2c05458de002cb40e99bd1d920; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1770604237; .thumbcache_f24b8bbe5a5934237bbc0eda20c1b6e7=XOnmADjfWnFV5feIx17sKNvLfJwt9YobOFwKueMl437b8SPjL7q5+N56xwE/sgY21hEayKk6IxrfwVTR7Hj53w%3D%3D; ssxmod_itna=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9nqDs=YxiNDAPq0iDC_WQ43RndH0eoGt0vqemK77YW48CfGGqgtWD1wu=OCR9=40cvt3gmq5gWsGEKDHxi8DB9KqeKoDeWFDCeDQxirDD4DA7oD=xDrD0Rvp8SvDYpe6BxDXxgLDGcv_OiKsIELG_0DO4Gi_IxDBp2RY6hED7eDElEEt4GCz7xDngQ4YloD964DsO0BZ4DCmkzKf88yYe6TOtMjDCKDjg2vDmemFiqr2fA6K4B54i40Aeb7GljD5Ah=mqetGxYe=BDwG0=iGCAG=0G=02zm0b4KDDpodoxnxoAyZnHV/5=Y2b_x4bWtaeTbRi8w4iqoVriKbrtRrAnqC0eT_xAm41GDD; ssxmod_itna2=1-YqAxcD2DBGKmw2D4qgDwrD0DI2D3T40QNDXDUuqiQGgDYq7=GFKDCOwKx0IFbeGklpoHK4qCm2yDPm9i4DWmRi3SWfbp_A5ihe=IgBDL_uYD'
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0'
 }
 
 response = requests.request("GET", url, headers=headers, data=payload)
 
-print(response.text)
+try:
+  json_data = response.json()
+  hot_topic_list = json_data['list']
+  for topic in hot_topic_list:
+    tag = topic['tag'].replace("#","")
+    print(tag)
+except Exception as e:
+  print(e)
 
+
+# print(response.text)
 
 
