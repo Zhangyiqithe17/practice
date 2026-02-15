@@ -156,7 +156,26 @@ def get_stock_detail(stock_code):
             #这样我们就把股票和它所从属的板块信息关联起来了
         sector_dict_list = get_stock_sector_list(stock_code)
         # 5、把所有字段装进字典，返回给调用方
-
+            #新建一个字典变量stock_dict,它的key是我们定义的字段名，value则对应着前面提取或转化后的变量值
+        stock_dict = {
+            "stock_code": stock_code,
+            "stock_name": stock_name,
+            "update_time": update_time,
+            "price": price,
+            "price_change_percent": price_change_percent,
+            "trading_value": trading_value,
+            "turnover_rate": turnover_rate,
+            "total_market_cap": total_market_cap,
+            "circulating_market_cap": circulating_market_cap,
+            "is_profitable": is_profitable,
+            "dynamic_pe_ratio": dynamic_pe_ratio,
+            "static_pe_ratio": static_pe_ratio,
+            "rolling_pe_ratio": rolling_pe_ratio,
+            "pb_ratio": pb_ratio,
+            "sector_dict_list": sector_dict_list
+        }
+        return stock_dict
+        #到现在为止，get_stock_detail函数就完成了，调用它的时候会返回一份完整的字典数据
     except Exception as e:
         raise Exception(f"获取个股详情失败：e：{e}")
 
