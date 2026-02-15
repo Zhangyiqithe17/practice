@@ -18,10 +18,74 @@ import traceback
 #最后把结果封装成一个字典返回
 def get_stock_detail(stock_code):
     #1、请求API拿响应
-    #2、从响应体里把数据字段提取出来
-    #3、把需要换算的值做单位换算（例如价格、涨跌幅、换手率都要除以100）
-    #4、单独请求所属板块接口，拿到板块列表
-    #5、把所有字段装进字典，返回给调用方
+        #切换到Postman,打开个股详情API的请求，复制生成的示例代码，复制到此处
+        #然后把URL写成f-字符串，具体来说，我们需要把股票代码作为变量，动态拼进secid
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=1&cb=jQuery123&fields=f58%2Cf734%2Cf107%2Cf57%2Cf43%2Cf59%2Cf169%2Cf301%2Cf60%2Cf170%2Cf152%2Cf177%2Cf111%2Cf46%2Cf44%2Cf45%2Cf47%2Cf260%2Cf48%2Cf261%2Cf279%2Cf277%2Cf278%2Cf288%2Cf19%2Cf17%2Cf531%2Cf15%2Cf13%2Cf11%2Cf20%2Cf18%2Cf16%2Cf14%2Cf12%2Cf39%2Cf37%2Cf35%2Cf33%2Cf31%2Cf40%2Cf38%2Cf36%2Cf34%2Cf32%2Cf211%2Cf212%2Cf213%2Cf214%2Cf215%2Cf210%2Cf209%2Cf208%2Cf207%2Cf206%2Cf161%2Cf49%2Cf171%2Cf50%2Cf86%2Cf84%2Cf85%2Cf168%2Cf108%2Cf116%2Cf167%2Cf164%2Cf162%2Cf163%2Cf92%2Cf71%2Cf117%2Cf292%2Cf51%2Cf52%2Cf191%2Cf192%2Cf262%2Cf294%2Cf181%2Cf295%2Cf269%2Cf270%2Cf256%2Cf257%2Cf285%2Cf286%2Cf748%2Cf747&secid=1.{stock_code}&ut=fa5fd1943c7b386f172d6893dbfba10b&wbp2u=%7C0%7C0%7C0%7Cweb&dect=1&_=1771054408829"
+
+    payload = {}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0'
+    }
+        #然后把请求和解析包进try...except,并在try下方调用response.raise_for_status(),拦截非200的HTTP错误
+        #以及在except的下方出现任何异常时，raise一个带上下文的异常，表明获取个股详情失败，把错误抛回给调用方
+    try:
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response.raise_for_status()
+        #把response.text丢给我们前面写好的convert_response_text_to_json，把JSONP转成标准的JSON，返回值先放在result_json
+        result_json = convert_response_text_to_json(response.text)
+        #下一步就可以做字段提取与数值换算了
+        # 2、从响应体里把数据字段提取出来
+            # 接下来我们要从result_json中提取需要的字段，把它们填充到字典数据中
+            # 为了方便操作，先打开txt文档，把个股详情接口响应结果里的data部分，复制粘贴到代码里，这样就能对照逐个字段提取
+            # "f43": 9498, // 最新股价，除以100等于浮点数
+            # "f48": 1228447273.0, // 交易日成交额，记录原始数据
+            # "f57": "688147", // 股票代码
+            # "f58": "微导纳米", // 股票名称
+            # "f86": 1770970295, // 数据更新时间
+            # "f116": 43800718739.340007, // 总市值，记录原始数据
+            # "f117": 43800718739.340007, // 流通市值，记录原始数据
+            # "f162": 13220, // 动态市盈率，除以100等于浮点数
+            # "f163": 19320, // 静态市盈率，除以100等于浮点数
+            # "f164": 13500, // 滚动市盈率，除以100等于浮点数
+            # "f167": 1516, // 市净率，除以100等于浮点数
+            # "f168": 293, // 交易日换手率，除以100等于浮点数
+            # "f170": 1457, // 交易日涨跌幅，除以100等于浮点数
+            # "f288": 0, // 是否盈利，0表示是，1表示否
+            #首先从其中提取出data字段,因为所有数值信息都存储在data里面
+        data = result_json["data"]
+            #接下来从data依次提取我们需要的字段，并赋值给对应的变量
+        price = data["f43"]
+        if "-" in price
+            print(f"股票已退市，跳过爬取，股票代码：{stock_code}")
+            return None
+        trading_value = data["f48"]
+        stock_code = data["f57"]
+        stock_name = data["f58"]
+        update_time = data["86"]
+        total_market_cap = data["f116"]
+        circulating_market_cap = data["f117"]
+        dynamic_pe_ratio = data["f162"]
+        static_pe_ratio = data["f163"]
+        rolling_pe_ratio = data["f164"]
+        pb_ratio = data["f167"]
+        turnover_ratio = data["f168"]
+        price_change_percent = data["f170"]
+        is_profitable = data["f288"]
+            #在赋值完成后，还要特别注意一个问题，有些个股可能已经退市，没有价格数据
+            #退市股票在接口里f43字段的值不是数字，而是“-”这样的字符串，如果我们直接用来做数值计算，就会报错
+            #所以我们需要先做一个判断：如果price被转换为字符串之后，里面包含符号"-",那么说明这只股票已经退市
+                #直接跳过，不做处理，这时print输出一行提示
+
+
+        # 3、把需要换算的值做单位换算（例如价格、涨跌幅、换手率都要除以100）
+        # 4、单独请求所属板块接口，拿到板块列表
+        # 5、把所有字段装进字典，返回给调用方
+
+    except Exception as e:
+        raise Exception(f"获取个股详情失败：e：{e}")
+
+
+
 
 
 
@@ -37,7 +101,7 @@ def convert_response_text_to_json(response_text):
     #拿到JSON字符串后调用json.loads,把它转成Python的字典对象
     result_json = json.loads(json_text)
     #最后再打印一下，确认解析正确
-    print(f"{result_json=}")
+    # print(f"{result_json=}")
     #并return返回给调用方，这样一来，我们就把JSONP转换成立正常的JSON
     # 后面三个接口都可以直接用这个函数来处理响应结果
     return result_json
