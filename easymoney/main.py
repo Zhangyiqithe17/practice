@@ -52,6 +52,41 @@ def get_stock_list(market_type,page_num):
     try:
         response = requests.request("GET", url, headers=headers, data=payload)
         response.raise_for_status()
+        #在函数get_stock_list里，我们已经拿到了接口的响应文本，接下来要做的，就是调用刚才写的convert_response_text_to_json
+            #转换成正常的JSON对象
+            #参数传入response.text,返回值就是一个python的字典，我们赋值给变量result_json
+        result_json = convert_response_text_to_json(response.text)
+            #然后我们从result_json里提取关键数据
+            #最外层的data字段，包含了股票的总数和具体的股票列表，把它取出来赋值给变量data
+        data = result_json["data"]
+                #从data里先拿出来total，这个就是股票总数，复制给stock_cnt
+        stock_cnt = data["total"]
+                #再拿到diff，这个是股票的明细列表，赋值给stock_list
+        stock_list = data["diff"]
+            #接下来要把股票代码提取出来
+                # 先新建一个空列表stock_code_list,用来存放股票代码
+        stock_code_list = []
+                #  然后写一个循环，循环变量命名为stock，逐个迭代stock_list
+                #每个stock是一个字典，里面有一个字段f12，它对应的值就是股票代码
+                #把它取出来，赋值给stock_code,再用append方法把它加到stock_code_list里
+                #这样函数就能同时得到股票总数stock_cnt,以及这一页的所有股票代码列表stock_code_list
+        for stock in stock_list:
+            stock_code = stock["f12"]
+            stock_code_list.append(stock_code)
+            #提取完股票数量和股票代码之后我们需要把他们整理成一个统一的返回结果
+            #这里新建一个字典stock_list_dict,里面放两个键值对
+            #第一个key是stock_cnt,对应的value就是刚才得到的股票总数stock_cnt
+            #第二个key是stock_code_list,对应的value是这一页的股票代码列表
+        stock_list_dict = {
+            "stock_cnt" : stock_cnt,
+            "stock_code_list" : stock_code_list
+        }
+            #为了调试方便，再输出一下stock_list_dict
+        print(f'{stock_list_dict=}')
+            #最后把它作为函数返回值return出去
+        return stock_list_dict
+
+
     except Exception as e:
         traceback.print_exc()
         raise Exception(f"获取股票列表失败：e：{e}")
@@ -71,6 +106,7 @@ def spider_stock_data(market_type):
         #2、根据股票总数实现分页循环
         #3、在分页循环中请求列表接口，获得股票列表
         #4、循环股票列表，获取个股详情数据
+        print(market_type)
     except Exception as e:
         print(e)
         traceback.print_exc()
