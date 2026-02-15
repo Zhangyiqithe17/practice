@@ -180,10 +180,6 @@ def get_stock_detail(stock_code):
         raise Exception(f"获取个股详情失败：e：{e}")
 
 
-
-
-
-
 #接下来我们要解决的问题是：接口返回的响应结果不是标准的JSON，而是JSONP格式，外面包了一层函数调用，所以直接用response.json()会报错
 #我们需要把外面的壳子去掉，只保留里面的JSON部分
 #既然我们会用到的桑接口都是这种格式，那就写一个通用函数
@@ -292,6 +288,9 @@ def spider_stock_data(market_type):
             #页码怎么算呢？页面从一开始计数，而start是从0开始的偏移量，所以我们用//，也就是向下取整的运算符
                 #把start转成第几页的索引，再+1就是实际页码
             page_num = (start // page_size) + 1
+            #TO DO:测试时只获取第一页数据
+            if page_num > 1:
+                break
             #接下来在每页的循环里，我们要去真正请求股票列表接口，获得这一页的股票代码
                 #在循环体里，调用我们刚才写好的get_stock_list的函数，把market_type和page_num作为参数传进去
                 #函数会返回一个字典，我们把它赋值给变量stock_list_dict
@@ -299,10 +298,22 @@ def spider_stock_data(market_type):
                 # 然后从这个字典里取出键stock_code_list对应的值，这个值就是一个股票代码的列表
             stock_code_list = stock_code_dict["stock_code_list"]
                 #接着我们用for循环，从这个股票代码列表里，一个一个迭代出具体的股票代码，循环变量就命名为stock_code
-                # for stock_code in stock_code_list:
-                #为了对get_stock_detail函数进行验证，我们先注释掉for循环，注释main里面对spider_stock_data的调用
-                    #然后调用get_stock_detail，传入一个股票代码，运行看看效果
-
+            for stock_code in stock_code_list:
+            #为了对get_stock_detail函数进行验证，我们先注释掉for循环，注释main里面对spider_stock_data的调用
+                #然后调用get_stock_detail，传入一个股票代码，运行看看效果
+            #在循环内部打印提示信息
+                print(f"获取个股详情:{stock_code}")
+            #接下来调用写好的get_stock_detail函数
+                stock_dict = get_stock_detail(stock_code)
+                #因为我们在get_stock_detail函数里面已经做过退市判断，如果股票已经退市，函数会返回None，所以这里要加一个判断:
+                    #如果结果为None，直接跳过，进入下一个循环
+                if stock_dict is None:
+                    continue
+            #接着调用time.sleep,这样做的目的很重要，可以避免短时间内频繁请求接口，被目标网站识别为异常访问，从而触发IP封禁
+                time.sleep(0.2)
+            #最后打印空行，这样在控制台输出里，每个股票的详情信息会有分割，更加清晰易读
+                print()
+            #为了节省时间，这里只获取第一页数据进行测试
 
 
         #3、在分页循环中请求列表接口，获得股票列表
@@ -315,5 +326,5 @@ def spider_stock_data(market_type):
 #最后补上主程序入口
 #至于参数值，我们打开爬虫数据项文档，复制上证A股的市场类型值传入
 if __name__ == '__main__':
-    # spider_stock_data("m:1+t:2+f:!2,m:1+t:23+f:!2")
-    get_stock_detail(601929)
+    spider_stock_data("m:1+t:2+f:!2,m:1+t:23+f:!2")
+    # get_stock_listdetail(601929)
