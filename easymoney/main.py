@@ -75,11 +75,9 @@ def get_stock_list(market_type,page_num):
             stock_code_list.append(stock_code)
             #提取完股票数量和股票代码之后我们需要把他们整理成一个统一的返回结果
             #这里新建一个字典stock_list_dict,里面放两个键值对
-            #第一个key是stock_cnt,对应的value就是刚才得到的股票总数stock_cnt
-            #第二个key是stock_code_list,对应的value是这一页的股票代码列表
         stock_list_dict = {
-            "stock_cnt" : stock_cnt,
-            "stock_code_list" : stock_code_list
+            "stock_cnt" : stock_cnt,#第一个key是stock_cnt,对应的value就是刚才得到的股票总数stock_cnt
+            "stock_code_list" : stock_code_list#第二个key是stock_code_list,对应的value是这一页的股票代码列表
         }
             #为了调试方便，再输出一下stock_list_dict
         print(f'{stock_list_dict=}')
@@ -112,6 +110,26 @@ def spider_stock_data(market_type):
         print(f"股票总数：{stock_cnt}")
             #运行后可以看到，输出的股票总数和页面上显示的一致，说明我们的股票列表接口调用成功了
         #2、根据股票总数实现分页循环
+            #单页获取跑通之后，分页面获取也开始做，思路是根据总条数和每页条数，推导出要请求的页码，然后一页页去拉取并处理
+            #我们先在这个函数内定义每页条数，这里按列表接口默认的每页20条计算
+        page_size = 20
+            #接下来需要一个循环变量，能依次取到0、20、40、60...直到最后一页之前的起始下标，最方便的就是用range(起始，结束，步长)
+            #其中起始传0，结束传股票总数stock_cnt,步长传每页条数page_size,这样每页循环start刚好落在第一页开头
+        for start in range(0,stock_cnt,page_size):
+            #页码怎么算呢？页面从一开始计数，而start是从0开始的偏移量，所以我们用//，也就是向下取整的运算符
+                #把start转成第几页的索引，再+1就是实际页码
+            page_num = (start // page_size) + 1
+            #接下来在每页的循环里，我们要去真正请求股票列表接口，获得这一页的股票代码
+                #在循环体里，调用我们刚才写好的get_stock_list的函数，把market_type和page_num作为参数传进去
+                #函数会返回一个字典，我们把它赋值给变量stock_list_dict
+            stock_code_dict = get_stock_list(market_type, page_num)
+                # 然后从这个字典里取出键stock_code_list对应的值，这个值就是一个股票代码的列表
+            stock_code_list = stock_code_dict["stock_code_list"]
+                #接着我们用for循环，从这个股票代码列表里，一个一个迭代出具体的股票代码，循环变量就命名为stock_code
+                for stock_code in stock_code_list:
+                    
+
+
         #3、在分页循环中请求列表接口，获得股票列表
         #4、循环股票列表，获取个股详情数据
     except Exception as e:
