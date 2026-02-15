@@ -11,6 +11,20 @@ import time
 import traceback
 #用来打印完整堆栈，定位问题非常直观
 
+#接下来要实现获取个股数据的逻辑
+#新建一个函数,命名为get_stock_detail，参数是stock_code
+
+#获取股票详情数据：针对传进来的这只股票，请求个股详情接口，把需要的字段提取出来，做必要的数值换算，再把所属板块也取回来
+#最后把结果封装成一个字典返回
+def get_stock_detail(stock_code):
+    #1、请求API拿响应
+    #2、从响应体里把数据字段提取出来
+    #3、把需要换算的值做单位换算（例如价格、涨跌幅、换手率都要除以100）
+    #4、单独请求所属板块接口，拿到板块列表
+    #5、把所有字段装进字典，返回给调用方
+
+
+
 #接下来我们要解决的问题是：接口返回的响应结果不是标准的JSON，而是JSONP格式，外面包了一层函数调用，所以直接用response.json()会报错
 #我们需要把外面的壳子去掉，只保留里面的JSON部分
 #既然我们会用到的桑接口都是这种格式，那就写一个通用函数
@@ -127,7 +141,7 @@ def spider_stock_data(market_type):
             stock_code_list = stock_code_dict["stock_code_list"]
                 #接着我们用for循环，从这个股票代码列表里，一个一个迭代出具体的股票代码，循环变量就命名为stock_code
                 for stock_code in stock_code_list:
-                    
+
 
 
         #3、在分页循环中请求列表接口，获得股票列表
