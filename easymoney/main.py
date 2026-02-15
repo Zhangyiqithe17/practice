@@ -1,3 +1,5 @@
+from logging import exception
+
 import requests
 #用来发起HTTP请求
 import json
@@ -11,9 +13,63 @@ import time
 import traceback
 #用来打印完整堆栈，定位问题非常直观
 
+#接下来获取股票所属的板块信息
+#get_stock_sector_list,参数是stock_code和page_size，page_size默认为50
+    #先默认一次性请求最多50条板块数据，如果发现实际返回的板块数量比50多，那再根据真实数量重新请求一次接口
+#获取股票所属板块列表，返回字典列表
+def get_stock_sector_list(stock_code,page_size = 50):
+    #然后切换到Postman，找到我们之前调试过的所属板块API，复制示例代码
+    #删除多余的import语句，然后把URL改成f-字符串格式这样就能把动态参数secid改为stock_code,pz改为page_size拼入
+        #这样以后就能灵活控制一次请求多少条数据
+    url = f"https://push2.eastmoney.com/api/qt/slist/get?fltt=1&invt=2&cb=jQuery35109547494889549937_1771057836148&fields=f14%2Cf12%2Cf13%2Cf3%2Cf152%2Cf4%2Cf128%2Cf140%2Cf141&secid=1.{stock_code}&ut=fa5fd1943c7b386f172d6893dbfba10b&pi=0&po=1&np=1&pz={page_size}&spt=3&wbp2u=%7C0%7C0%7C0%7Cweb&_=1771057836149"
+
+    payload = {}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0'
+    }
+    #把请求的核心逻辑放在try里
+    try:
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response.raise_for_status()
+        #用工具函数convert_response_text_to_json把response.text转换为JSON对象
+        result_json = convert_response_text_to_json(response.text)
+        #接下来从接口返回的result_json里，把我们需要的板块信息提取出来
+        #先从result_json中取出字段data，赋值给变量data
+            #因为股票所属字段的所有数据，都包含在这个字段里
+        data = result_json["data"]
+        #然后从data中取出字段total，也就是总的板块数量，注意这里需要强制转换成int类型,赋值给变量total_cnt
+            #为什么要转换成整数呢？因为API返回的有可能是字符串形式，后续用它必须确保它是整数
+        total_cnt = int(data["total"])
+        #接下来做一个判断,如果total_cnt > page_size，说明我们这次请求并没有获取到全部板块数据，需要重新请求一次
+            #并把page_size设置为total_cnt，这样就能一次性把所有板块数据都拿到
+        if total_cnt > page_size:
+            #这里直接调用自身函数
+            return get_stock_sector_list(stock_code,total_cnt)
+        #而如果total_cnt没有超过，那说明这次请求的数据已经完整了，就可以继续往下处理
+        #从data中提取字段diff，它是一个列表，包含了每一个板块的详细信息，赋值给变量sector_list
+        sector_list = data["diff"]
+        #接下来定义一个空列表sector_dict_list,用于保存我们提取后的板块字典数据
+        sector_dict_list = []
+        #然后用for循环遍历sector_list，每次迭代出一个sector
+        for sector in sector_list:
+            #在函数体内部，我们定义一个字典sector_dict，手动把板块的两个字段提取出来
+            sector_dict = {
+                "sector_code" : sector["f12"],#股票编号
+                "sector_name": sector["f14"]#板块名称
+            }
+            #然后把这个字典添加到列表sector_dict_list中
+            sector_dict_list.append(sector_dict)
+        #循环结束后，在for循环外面，我们打印行日志信息，来了解当前股票一共属于多少个板块
+        print(f"从属于{len(sector_dict_list)}个板块")
+        #最后return返回sector_dict_list，让调用方拿到所有板块的编号和名称
+        return sector_dict_list
+
+    except Exception as e:
+        raise exception(f"获取所属板块失败，e：{e}")
+
+
 #接下来要实现获取个股数据的逻辑
 #新建一个函数,命名为get_stock_detail，参数是stock_code
-
 #获取股票详情数据：针对传进来的这只股票，请求个股详情接口，把需要的字段提取出来，做必要的数值换算，再把所属板块也取回来
 #最后把结果封装成一个字典返回
 def get_stock_detail(stock_code):
@@ -95,6 +151,10 @@ def get_stock_detail(stock_code):
               f"总市值:{total_market_cap},流通市值:{circulating_market_cap},是否盈利:{is_profitable}"
               f"动态市盈率:{dynamic_pe_ratio},静态市盈率:{static_pe_ratio},滚动市盈率:{rolling_pe_ratio}")
         # 4、单独请求所属板块接口，拿到板块列表
+            #在这里直接调用写好的函数,调用时只需要传入stock_code,返回值赋值给变量sector_dict_list
+            #这个变量就是一个字典列表，里面的每一项都包含了板块编号和板块名称
+            #这样我们就把股票和它所从属的板块信息关联起来了
+        sector_dict_list = get_stock_sector_list(stock_code)
         # 5、把所有字段装进字典，返回给调用方
 
     except Exception as e:
