@@ -103,10 +103,17 @@ def get_stock_list(market_type,page_num):
 def spider_stock_data(market_type):
     try:
         #1、先请求列表接口，获得股票总数
+            #调用get_stock_list接口，并传入市场类型和页码1，也就是第一页的数据
+            #函数会返回一个字典，赋值给stock_list_dict
+        stock_list_dict = get_stock_list(market_type,1)
+            #接着我们从里面取出stock_cnt的值，赋值给变量stock_cnt
+        stock_cnt = stock_list_dict["stock_cnt"]
+            #然后打印出来
+        print(f"股票总数：{stock_cnt}")
+            #运行后可以看到，输出的股票总数和页面上显示的一致，说明我们的股票列表接口调用成功了
         #2、根据股票总数实现分页循环
         #3、在分页循环中请求列表接口，获得股票列表
         #4、循环股票列表，获取个股详情数据
-        print(market_type)
     except Exception as e:
         print(e)
         traceback.print_exc()
