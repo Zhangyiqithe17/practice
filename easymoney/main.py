@@ -11,6 +11,23 @@ import time
 import traceback
 #用来打印完整堆栈，定位问题非常直观
 
+#接下来我们要解决的问题是：接口返回的响应结果不是标准的JSON，而是JSONP格式，外面包了一层函数调用，所以直接用response.json()会报错
+#我们需要把外面的壳子去掉，只保留里面的JSON部分
+#既然我们会用到的桑接口都是这种格式，那就写一个通用函数
+#将响应文本转换为JSON对象
+def convert_response_text_to_json(response_text):
+    print(f"{response_text=}")#为了直观，先打印
+    #接下来用正则表达式提取出JSON部分
+    #先匹配开头的jQuery和后面的数字
+    json_text = re.search(r"jQuery.*?\((\{.*?\})\)",response_text).group(1)
+    #拿到JSON字符串后调用json.loads,把它转成Python的字典对象
+    result_json = json.loads(json_text)
+    #最后再打印一下，确认解析正确
+    print(f"{result_json=}")
+    #并return返回给调用方，这样一来，我们就把JSONP转换成立正常的JSON
+    # 后面三个接口都可以直接用这个函数来处理响应结果
+    return result_json
+
 #接下来实现获取股票列表的逻辑
 #新建函数get_stock_list，它接收两个参数market_type和page_num
 #market_type用来制定交易市场类型，page_num表示页码
