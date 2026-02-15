@@ -55,29 +55,45 @@ def get_stock_detail(stock_code):
         data = result_json["data"]
             #接下来从data依次提取我们需要的字段，并赋值给对应的变量
         price = data["f43"]
-        if "-" in price
+        if "-" in str(price):
             print(f"股票已退市，跳过爬取，股票代码：{stock_code}")
             return None
         trading_value = data["f48"]
         stock_code = data["f57"]
         stock_name = data["f58"]
-        update_time = data["86"]
+        update_time = data["f86"]
         total_market_cap = data["f116"]
         circulating_market_cap = data["f117"]
         dynamic_pe_ratio = data["f162"]
         static_pe_ratio = data["f163"]
         rolling_pe_ratio = data["f164"]
         pb_ratio = data["f167"]
-        turnover_ratio = data["f168"]
+        turnover_rate = data["f168"]
         price_change_percent = data["f170"]
         is_profitable = data["f288"]
             #在赋值完成后，还要特别注意一个问题，有些个股可能已经退市，没有价格数据
             #退市股票在接口里f43字段的值不是数字，而是“-”这样的字符串，如果我们直接用来做数值计算，就会报错
             #所以我们需要先做一个判断：如果price被转换为字符串之后，里面包含符号"-",那么说明这只股票已经退市
                 #直接跳过，不做处理，这时print输出一行提示
-
-
         # 3、把需要换算的值做单位换算（例如价格、涨跌幅、换手率都要除以100）
+            #接口里有很多数值字段和页面上展示的不一样，比如价格涨跌幅换手率等，需要先除以100才能对应到页面上的小数值
+            #所以思路是：先把原始值强制转成int，再除以对应的比例，最后转成float写到原变量里
+        price = float(int(price) / 100)
+        price_change_percent = float(int(price_change_percent) / 100)
+        turnover_rate = float(int(turnover_rate) / 100)
+        dynamic_pe_ratio = float(int(dynamic_pe_ratio) / 100)
+        static_pe_ratio = float(int(static_pe_ratio) / 100)
+        rolling_pe_ratio = float(int(rolling_pe_ratio) / 100)
+        pb_ratio = float(int(pb_ratio) / 100)
+            #是否盈利是布尔值，但在接口里要用0/1表示，可以把它映射成人类可读的“是/否”
+        is_profitable = "是" if is_profitable == 0 else "否"
+            #更新时间是时间戳，我们转换成datetime对象，方便后续入库与展示
+        update_time = datetime.datetime.fromtimestamp(update_time)
+            #最后把所有字段名和对应的值打印出来，方便确认效果
+        print(f"股票代码:{stock_code},股票名称:{stock_name},更新时间:{update_time},最新价:{price}\n"
+              f"交易日涨跌幅:{price_change_percent},交易日成交额:{trading_value},换手率:{turnover_rate}"
+              f"总市值:{total_market_cap},流通市值:{circulating_market_cap},是否盈利:{is_profitable}"
+              f"动态市盈率:{dynamic_pe_ratio},静态市盈率:{static_pe_ratio},滚动市盈率:{rolling_pe_ratio}")
         # 4、单独请求所属板块接口，拿到板块列表
         # 5、把所有字段装进字典，返回给调用方
 
@@ -204,7 +220,9 @@ def spider_stock_data(market_type):
                 # 然后从这个字典里取出键stock_code_list对应的值，这个值就是一个股票代码的列表
             stock_code_list = stock_code_dict["stock_code_list"]
                 #接着我们用for循环，从这个股票代码列表里，一个一个迭代出具体的股票代码，循环变量就命名为stock_code
-                for stock_code in stock_code_list:
+                # for stock_code in stock_code_list:
+                #为了对get_stock_detail函数进行验证，我们先注释掉for循环，注释main里面对spider_stock_data的调用
+                    #然后调用get_stock_detail，传入一个股票代码，运行看看效果
 
 
 
@@ -218,4 +236,5 @@ def spider_stock_data(market_type):
 #最后补上主程序入口
 #至于参数值，我们打开爬虫数据项文档，复制上证A股的市场类型值传入
 if __name__ == '__main__':
-    spider_stock_data("m:1+t:2+f:!2,m:1+t:23+f:!2")
+    # spider_stock_data("m:1+t:2+f:!2,m:1+t:23+f:!2")
+    get_stock_detail(601929)
