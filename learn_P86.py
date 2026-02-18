@@ -12,10 +12,20 @@ import threading
 import time
 import threading
 
+balance = 1000
 def deliver_parcel(parcel_id):
     print(f"快递{parcel_id}:开始派送")
     time.sleep(2)
     print(f"快递{parcel_id}:派送完成")
+    reduce_balance()
+
+#假如加入奖金计算机制：送完一个快递，快递原可以拿10元奖金，一共1000元奖金，快递员每送完一次快递并拿取奖金时，应该及时更新数据
+#我们可以创建一个全局变量balance来表示余额，以及创建一个reduce_balance函数
+def reduce_balance():
+    global balance #声明我们要在函数里修改balance这个全局变量，因为函数里的变量默认视为局部变量，如果不加，最后一行对balance的复制会被视为是创建局部变量
+    previous_balance = balance
+    time.sleep(0.1)
+    balance = previous_balance - 10
 
 thread1 = threading.Thread(target=deliver_parcel, args=(1,),name="张三")
 
@@ -41,11 +51,12 @@ thread3.start()
 
 #我们需要调用Thread对象的join方法，用在阻塞主线程，直到被调用join方法的线程执行结束
 thread1.join()
-print(f"收到{thread1.name}的完成通知")
+# print(f"收到{thread1.name}的完成通知")
 thread2.join()
-print(f"收到{thread2.name}的完成通知")
+# print(f"收到{thread2.name}的完成通知")
 thread3.join()
-print(f"收到{thread3.name}的完成通知")
+# print(f"收到{thread3.name}的完成通知")
+print(f"余额:{balance}")
 print(f"总耗时：{time.time()-start:.2f}秒")
 #当线程A调用线程B的join方法时，线程A会进入阻塞状态，也就是暂停执行，直到线程B完全执行结束，线程A才会继续执行
 #我们也可以在join后面执行一条打印语句，只要能运行到后面的print，说明前面的join已经不再阻塞主线程了
@@ -66,5 +77,7 @@ print(f"总耗时：{time.time()-start:.2f}秒")
 
 #所以，因为print不具备原子性，它是非线程安全的
 #当竞争发生在共享变量的修改上时，会导致更严重的后果，比如可能造成数据损坏，程序状态不一致等难以追踪的逻辑错误，让最终值完全偏离预期
+
+#打印结果本来应该是970，却显示是990，结果错误
 
 
