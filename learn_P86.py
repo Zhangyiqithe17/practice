@@ -13,51 +13,51 @@ import time
 import threading
 
 balance = 1000
-def deliver_parcel(parcel_id):
-    print(f"快递{parcel_id}:开始派送")
-    time.sleep(2)
-    print(f"快递{parcel_id}:派送完成")
-    reduce_balance()
+# def deliver_parcel(parcel_id):
+#     print(f"快递{parcel_id}:开始派送")
+#     time.sleep(2)
+#     print(f"快递{parcel_id}:派送完成")
+#     reduce_balance()
 
 #假如加入奖金计算机制：送完一个快递，快递原可以拿10元奖金，一共1000元奖金，快递员每送完一次快递并拿取奖金时，应该及时更新数据
 #我们可以创建一个全局变量balance来表示余额，以及创建一个reduce_balance函数
-def reduce_balance():
-    global balance #声明我们要在函数里修改balance这个全局变量，因为函数里的变量默认视为局部变量，如果不加，最后一行对balance的复制会被视为是创建局部变量
-    previous_balance = balance
-    time.sleep(0.1)
-    balance = previous_balance - 10
+# def reduce_balance():
+#     global balance #声明我们要在函数里修改balance这个全局变量，因为函数里的变量默认视为局部变量，如果不加，最后一行对balance的复制会被视为是创建局部变量
+#     previous_balance = balance
+#     time.sleep(0.1)
+#     balance = previous_balance - 10
 
-thread1 = threading.Thread(target=deliver_parcel, args=(1,),name="张三")
-
-#比如上面这个代码里，我们给Thread构造函数的target，设置为deliver_parcel这个函数，表示线程任务是调用deliver_parcel函数
-# 然后给args设置为包含一个整数1的元祖，表示线程在调用deliver_parcel时会传入1作为参数值
-#现在我们给主线程创建一条子线程作为帮手，那还可以尝试创建更多出来
-thread2 = threading.Thread(target=deliver_parcel, args=(2,),name="李四")
-thread3 = threading.Thread(target=deliver_parcel, args=(3,),name="王五")
-#实例化3个Thread对象，目标是让每一个子线程都去负责一个快递的派送，把任务时长缩到更短
-#但这个时候，每个线程还不会开始执行，我们还需要调用Thread对象的start方法，来启动线程活动
-#并且为了能计算出整体缩耗费的时间，我们用了time模块的time方法记录下开始时间和结束时间
-#那么主线程，也就是执行这个Python程序的线程，会负责执行子线程的start、打印耗时语句等等
-#而子线程会分别执行deliver_parcel
-start = time.time()
-thread1.start()
-thread2.start()
-thread3.start()
+# thread1 = threading.Thread(target=deliver_parcel, args=(1,),name="张三")
+#
+# #比如上面这个代码里，我们给Thread构造函数的target，设置为deliver_parcel这个函数，表示线程任务是调用deliver_parcel函数
+# # 然后给args设置为包含一个整数1的元祖，表示线程在调用deliver_parcel时会传入1作为参数值
+# #现在我们给主线程创建一条子线程作为帮手，那还可以尝试创建更多出来
+# thread2 = threading.Thread(target=deliver_parcel, args=(2,),name="李四")
+# thread3 = threading.Thread(target=deliver_parcel, args=(3,),name="王五")
+# #实例化3个Thread对象，目标是让每一个子线程都去负责一个快递的派送，把任务时长缩到更短
+# #但这个时候，每个线程还不会开始执行，我们还需要调用Thread对象的start方法，来启动线程活动
+# #并且为了能计算出整体缩耗费的时间，我们用了time模块的time方法记录下开始时间和结束时间
+# #那么主线程，也就是执行这个Python程序的线程，会负责执行子线程的start、打印耗时语句等等
+# #而子线程会分别执行deliver_parcel
+# start = time.time()
+# thread1.start()
+# thread2.start()
+# thread3.start()
+# # print(f"总耗时：{time.time()-start:.2f}秒")
+#
+# #到这里，运行结果并不尽人意，如果多运行几遍，每次打印出来的结果还不一样，而且总耗时2秒是不对的，因为一个快递最少也要2秒
+# #这说明总耗时的计算发生在了那三个调用deliver_parcel的线程执行完成之前，主线程在调用start后并没有等待子线程执行完毕，就继续执行打印语句了
+# #而且虽然线程启动的顺序是1、2、3，但是完成的顺序是1、3、2，这也是多线程的特点：每个线程由操作系统调度，执行顺序是不可预测的
+#
+# #我们需要调用Thread对象的join方法，用在阻塞主线程，直到被调用join方法的线程执行结束
+# thread1.join()
+# # print(f"收到{thread1.name}的完成通知")
+# thread2.join()
+# # print(f"收到{thread2.name}的完成通知")
+# thread3.join()
+# # print(f"收到{thread3.name}的完成通知")
+# print(f"余额:{balance}")
 # print(f"总耗时：{time.time()-start:.2f}秒")
-
-#到这里，运行结果并不尽人意，如果多运行几遍，每次打印出来的结果还不一样，而且总耗时2秒是不对的，因为一个快递最少也要2秒
-#这说明总耗时的计算发生在了那三个调用deliver_parcel的线程执行完成之前，主线程在调用start后并没有等待子线程执行完毕，就继续执行打印语句了
-#而且虽然线程启动的顺序是1、2、3，但是完成的顺序是1、3、2，这也是多线程的特点：每个线程由操作系统调度，执行顺序是不可预测的
-
-#我们需要调用Thread对象的join方法，用在阻塞主线程，直到被调用join方法的线程执行结束
-thread1.join()
-# print(f"收到{thread1.name}的完成通知")
-thread2.join()
-# print(f"收到{thread2.name}的完成通知")
-thread3.join()
-# print(f"收到{thread3.name}的完成通知")
-print(f"余额:{balance}")
-print(f"总耗时：{time.time()-start:.2f}秒")
 #当线程A调用线程B的join方法时，线程A会进入阻塞状态，也就是暂停执行，直到线程B完全执行结束，线程A才会继续执行
 #我们也可以在join后面执行一条打印语句，只要能运行到后面的print，说明前面的join已经不再阻塞主线程了
 #每个Thread对象都有一个表示名称的name属性，所以我们可以把name一起打印出来
@@ -79,5 +79,43 @@ print(f"总耗时：{time.time()-start:.2f}秒")
 #当竞争发生在共享变量的修改上时，会导致更严重的后果，比如可能造成数据损坏，程序状态不一致等难以追踪的逻辑错误，让最终值完全偏离预期
 
 #打印结果本来应该是970，却显示是990，结果错误
+#再试一下把业务规模扩大，让10个快递小哥同时出发，也就是通过for循环创建10条子线程出来，并且依次调用各个Thread对象的start和join
 
 
+#即使扩大到了10个快递员，余额还是990，这是因为reduce_balance函数和前面的print一样，并不是原子操作，执行过程中的中间步骤会被其他线程打断
+#如果要解决这个问题，需要让reduce_balance的执行不会被中途打断，我们可以给它加一把锁
+#锁的概念是：同一时间只有一个线程可以获得锁，其他线程就要等着，直到这个锁被释放
+#那么我们就可以给对共享资源的操作，加上一把锁进行保护
+#当线程1想操作记账本的时候，他必须先获得锁，而此时其他线程因为没有拿到锁，必须等待，直到线程1完成操作后把锁释放
+    #释放的时候，其他被锁阻塞的线程都可以去竞争，但最终也只会有一个线程获得锁，确保共享资源不会被多个线程同时修改
+#Threading里有一个叫lock的类，所以我们可以调用lock构造函数实例化一个锁，来保护对balance变量的访问操作
+balance_lock = threading.Lock()
+#上锁的方法也很简单：with后面跟上锁名，冒号，然后我们把需要避免线程竞争语句，全部放在下面的代码块里
+def deliver_parcel(parcel_id):
+    print(f"快递{parcel_id}:开始派送")
+    time.sleep(2)
+    print(f"快递{parcel_id}:派送完成")
+    reduce_balance()
+
+def reduce_balance():
+    global balance
+    #with语句会自动管理锁的生命周期，进入with块时自动获取锁，退出with块时自动释放锁
+    #所以可以避免写代码时忘记调用锁的释放方法
+    with balance_lock:
+        previous_balance = balance
+        time.sleep(0.1)
+        balance = previous_balance - 10
+
+
+thread_list = []
+start = time.time()
+for i in range(10):
+    thread = threading.Thread(target=deliver_parcel, args=((i+1),))
+    thread_list.append(thread)
+    thread.start()
+
+for thread in thread_list:
+    thread.join()
+
+print(f"余额:{balance}")
+print(f"总耗时：{time.time()-start:.2f}秒")
