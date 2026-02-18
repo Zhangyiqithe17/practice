@@ -33,4 +33,21 @@ start = time.time()
 thread1.start()
 thread2.start()
 thread3.start()
+# print(f"总耗时：{time.time()-start:.2f}秒")
+
+#到这里，运行结果并不尽人意，如果多运行几遍，每次打印出来的结果还不一样，而且总耗时2秒是不对的，因为一个快递最少也要2秒
+#这说明总耗时的计算发生在了那三个调用deliver_parcel的线程执行完成之前，主线程在调用start后并没有等待子线程执行完毕，就继续执行打印语句了
+#而且虽然线程启动的顺序是1、2、3，但是完成的顺序是1、3、2，这也是多线程的特点：每个线程由操作系统调度，执行顺序是不可预测的
+
+#我们需要调用Thread对象的join方法，用在阻塞主线程，直到被调用join方法的线程执行结束
+thread1.join()
+print(f"收到{thread1.name}的完成通知")
+thread2.join()
+print(f"收到{thread2.name}的完成通知")
+thread3.join()
+print(f"收到{thread3.name}的完成通知")
 print(f"总耗时：{time.time()-start:.2f}秒")
+#当线程A调用线程B的join方法时，线程A会进入阻塞状态，也就是暂停执行，直到线程B完全执行结束，线程A才会继续执行
+#我们也可以在join后面执行一条打印语句，只要能运行到后面的print，说明前面的join已经不再阻塞主线程了
+#每个Thread对象都有一个表示名称的name属性，所以我们可以把name一起打印出来
+#现在打印出来的总耗时就是合理的了，数字也从单线程时的6秒缩短到了2秒
