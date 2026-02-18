@@ -11,6 +11,7 @@ import threading
 
 import time
 import threading
+from symbol import with_stmt
 
 balance = 1000
 # def deliver_parcel(parcel_id):
@@ -110,21 +111,47 @@ def reduce_balance():
         time.sleep(0.1)
         balance = previous_balance - 10
 
-
-thread_list = []
 start = time.time()
-for i in range(10):
-    thread = threading.Thread(target=deliver_parcel, args=((i+1),))
-    thread_list.append(thread)
-    thread.start()
+# thread_list = []
+# for i in range(10):
+#     thread = threading.Thread(target=deliver_parcel, args=((i+1),))
+#     thread_list.append(thread)
+#     thread.start()
+#
+# for thread in thread_list:
+#     thread.join()
 
-for thread in thread_list:
-    thread.join()
 
-print(f"余额:{balance}")
-print(f"总耗时：{time.time()-start:.2f}秒")
 
 #因为上了锁，所以reduce_balance函数里面，上了balance_lock锁里面，0.1秒等待过程中，锁并没有别被释放，剩下需要执行reduce_balance的线程拿不到锁
 #于是也处于被阻塞的状态
 #所以也提醒我们，要对不同的共享资源合理分配不同的锁，比如print的锁和reduce_balance的锁不应该是同一个，不然线程之间对锁的竞争会造成更多阻塞时间
 #除此之外，线程的创建和销毁也会带来一定的开销，所以后面我们会了解线程池的概念
+
+#每个线程的创建和销毁都要消耗系统资源，比如CPU、内存等，也会增加额外的时间，所以我们最好尽可能避免频繁创建和销毁线程，最好是能复用已有线程
+#线程池就是用来解决这个问题的，并且可以实现线程的高效管理
+#为了能创建一个线程池，我们要导入ThreadPoolExecutor类，它在concurrent.futures模块下，它也是Python标准库的内置模块，不需额外安装
+from concurrent.futures import ThreadPoolExecutor
+#调用ThreadPoolExecutor类的构造函数，我们可以创建出一个线程池对象，但是更常用的是结合with块，可以实现线程池资源的自动管理
+#线程池中最多包含的子线程数是由ThreadPoolExecutor的max_workers参数决定的
+#比如我们希望线程池里最多创建出3个子线程，就设置这个参数值为3，但是这不代表线程池会在一开始就一次性创建出那么多个子线程
+#而是会在执行任务时，根据任务数量自动增加子线程，直到达到max_workers这个上限为止
+#创建的线程数达到上限之后，任务再过来时线程池就不会再创建新线程了，新任务会进入队列等待，直到某个已创建的线程变得空闲，然后那个线程再去执行新任务
+#使用线程池的话，我们就不需要手动单独创建Thread对象，和我们就不需要手动单独创建Thread对象，和安排各个线程的任务了
+#而是调用线程池对象的submit方法，向线程池提交任务
+#如果用线程池，原先的逻辑不需要做太多改动，只需要改中间创建线程，和等待线程执行完成的逻辑
+
+with ThreadPoolExecutor(max_workers=5) as pool:
+    for i in range(10):
+        pool.submit(deliver_parcel, i+1)
+    print("全部任务已提交")
+#上面调用了pool的submit方法向线程池提交任务，第一个参数同样是比如函数这种可调用对象，如果可调用对象也有需要接收的参数的话，我们从第二个参数开始依次按顺序传入参数值
+#任务提交之后，线程池会自动分配空闲线程去处理任务，线程会等待线程池分配新的任务
+
+print(f"余额:{balance}")
+print(f"总耗时：{time.time() - start:.2f}秒")
+#从打印结果可以看出，我们调用submit方法提交送快递的任务后，立刻有三个线程开始执行，任务完成后，这三个线程又会继续去完成被安排的后续任务
+    #直到我们向线程池提交的所有任务都被执行完成
+    #另外，虽然我们没有让主线程去等待子线程执行完成，但是总耗时的计算和输出也是没有问题的
+    #这是因为用线程池结合with代码块进行管理的时候，线程池会自动等待所有已提交任务的完成，不需要显式调用各个线程的join方法
+    #在退出with代码块时，线程池也会自动释放所有资源
