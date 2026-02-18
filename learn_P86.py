@@ -91,10 +91,14 @@ balance = 1000
 #Threading里有一个叫lock的类，所以我们可以调用lock构造函数实例化一个锁，来保护对balance变量的访问操作
 balance_lock = threading.Lock()
 #上锁的方法也很简单：with后面跟上锁名，冒号，然后我们把需要避免线程竞争语句，全部放在下面的代码块里
+#除了reduce_balance函数，我们前面还遇到了打印混乱的问题，所以我们可以给print函数也加上锁，同样的方法实例化一个Lock对象
+print_lock = threading.Lock()
 def deliver_parcel(parcel_id):
-    print(f"快递{parcel_id}:开始派送")
+    with print_lock:
+        print(f"快递{parcel_id}:开始派送")
     time.sleep(2)
-    print(f"快递{parcel_id}:派送完成")
+    with print_lock:
+        print(f"快递{parcel_id}:派送完成")
     reduce_balance()
 
 def reduce_balance():
@@ -119,3 +123,8 @@ for thread in thread_list:
 
 print(f"余额:{balance}")
 print(f"总耗时：{time.time()-start:.2f}秒")
+
+#因为上了锁，所以reduce_balance函数里面，上了balance_lock锁里面，0.1秒等待过程中，锁并没有别被释放，剩下需要执行reduce_balance的线程拿不到锁
+#于是也处于被阻塞的状态
+#所以也提醒我们，要对不同的共享资源合理分配不同的锁，比如print的锁和reduce_balance的锁不应该是同一个，不然线程之间对锁的竞争会造成更多阻塞时间
+#除此之外，线程的创建和销毁也会带来一定的开销，所以后面我们会了解线程池的概念
