@@ -17,13 +17,13 @@ def deliver_parcel(parcel_id):
     time.sleep(2)
     print(f"快递{parcel_id}:派送完成")
 
-thread1 = threading.Thread(target=deliver_parcel, args=(1,))
+thread1 = threading.Thread(target=deliver_parcel, args=(1,),name="张三")
 
 #比如上面这个代码里，我们给Thread构造函数的target，设置为deliver_parcel这个函数，表示线程任务是调用deliver_parcel函数
 # 然后给args设置为包含一个整数1的元祖，表示线程在调用deliver_parcel时会传入1作为参数值
 #现在我们给主线程创建一条子线程作为帮手，那还可以尝试创建更多出来
-thread2 = threading.Thread(target=deliver_parcel, args=(2,))
-thread3 = threading.Thread(target=deliver_parcel, args=(3,))
+thread2 = threading.Thread(target=deliver_parcel, args=(2,),name="李四")
+thread3 = threading.Thread(target=deliver_parcel, args=(3,),name="王五")
 #实例化3个Thread对象，目标是让每一个子线程都去负责一个快递的派送，把任务时长缩到更短
 #但这个时候，每个线程还不会开始执行，我们还需要调用Thread对象的start方法，来启动线程活动
 #并且为了能计算出整体缩耗费的时间，我们用了time模块的time方法记录下开始时间和结束时间
@@ -51,3 +51,20 @@ print(f"总耗时：{time.time()-start:.2f}秒")
 #我们也可以在join后面执行一条打印语句，只要能运行到后面的print，说明前面的join已经不再阻塞主线程了
 #每个Thread对象都有一个表示名称的name属性，所以我们可以把name一起打印出来
 #现在打印出来的总耗时就是合理的了，数字也从单线程时的6秒缩短到了2秒
+
+#这种系统默认分配的名字不方便我们记忆和辨别，所以也可以给线程设置自定义的名字
+#具体在：我们可以实例化Thread对象的时候。增加一个name参数，给各个线程增加一个好记忆的名字
+
+#但是到现在，打印结果里面还会出现一些莫名其妙消失的换行和多出来的空白行
+#这是因为出现了线程竞争（多个线程同时访问和操作共享资源，比如变量、文件、数据库等等，导致最终结果依赖于线程执行的顺序，从而让结果变得不可预测）
+
+#在这个例子里，多个线程会同时调用print函数而产生线程竞争
+#而且print并不是原子操作，原子操作指的是不可分割的操作，但是print实际的执行步骤拆分出了多步，包括构建字符串、写入字符串到缓冲区、写入换行符到缓冲区、输出到终端
+    #这里的缓冲区就属于线程之间的共享资源，因为只有一个缓存区用于暂存要输出到终端的内容，那么当多个线程在差不多的时间调用print函数的时候
+    #每个print内部的多个步骤会交替进行，从而导致缓存区可能同时暂存了不同print写入的字符串
+    #然后混合了多个线程写入的字符串，会在某个print执行刷新缓冲区这个步骤的时候，输出到终端，导致我们看到的混乱且不可预测的打印结果
+
+#所以，因为print不具备原子性，它是非线程安全的
+#当竞争发生在共享变量的修改上时，会导致更严重的后果，比如可能造成数据损坏，程序状态不一致等难以追踪的逻辑错误，让最终值完全偏离预期
+
+
