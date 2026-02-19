@@ -11,7 +11,8 @@ import threading
 
 import time
 import threading
-from symbol import with_stmt
+# from symbol import with_stmt
+from concurrent.futures import ThreadPoolExecutor
 
 balance = 1000
 # def deliver_parcel(parcel_id):
@@ -100,7 +101,8 @@ def deliver_parcel(parcel_id):
     time.sleep(2)
     with print_lock:
         print(f"快递{parcel_id}:派送完成")
-    reduce_balance()
+    # reduce_balance()
+    return parcel_id,time.time()-start
 
 def reduce_balance():
     global balance
@@ -112,6 +114,7 @@ def reduce_balance():
         balance = previous_balance - 10
 
 start = time.time()
+future_list = []
 # thread_list = []
 # for i in range(10):
 #     thread = threading.Thread(target=deliver_parcel, args=((i+1),))
@@ -131,7 +134,7 @@ start = time.time()
 #每个线程的创建和销毁都要消耗系统资源，比如CPU、内存等，也会增加额外的时间，所以我们最好尽可能避免频繁创建和销毁线程，最好是能复用已有线程
 #线程池就是用来解决这个问题的，并且可以实现线程的高效管理
 #为了能创建一个线程池，我们要导入ThreadPoolExecutor类，它在concurrent.futures模块下，它也是Python标准库的内置模块，不需额外安装
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor
 #调用ThreadPoolExecutor类的构造函数，我们可以创建出一个线程池对象，但是更常用的是结合with块，可以实现线程池资源的自动管理
 #线程池中最多包含的子线程数是由ThreadPoolExecutor的max_workers参数决定的
 #比如我们希望线程池里最多创建出3个子线程，就设置这个参数值为3，但是这不代表线程池会在一开始就一次性创建出那么多个子线程
@@ -143,15 +146,29 @@ from concurrent.futures import ThreadPoolExecutor
 
 with ThreadPoolExecutor(max_workers=5) as pool:
     for i in range(10):
-        pool.submit(deliver_parcel, i+1)
+        future = pool.submit(deliver_parcel, i+1)
+        future_list.append(future)
     print("全部任务已提交")
 #上面调用了pool的submit方法向线程池提交任务，第一个参数同样是比如函数这种可调用对象，如果可调用对象也有需要接收的参数的话，我们从第二个参数开始依次按顺序传入参数值
 #任务提交之后，线程池会自动分配空闲线程去处理任务，线程会等待线程池分配新的任务
 
-print(f"余额:{balance}")
+# print(f"余额:{balance}")
 print(f"总耗时：{time.time() - start:.2f}秒")
 #从打印结果可以看出，我们调用submit方法提交送快递的任务后，立刻有三个线程开始执行，任务完成后，这三个线程又会继续去完成被安排的后续任务
     #直到我们向线程池提交的所有任务都被执行完成
     #另外，虽然我们没有让主线程去等待子线程执行完成，但是总耗时的计算和输出也是没有问题的
     #这是因为用线程池结合with代码块进行管理的时候，线程池会自动等待所有已提交任务的完成，不需要显式调用各个线程的join方法
     #在退出with代码块时，线程池也会自动释放所有资源
+
+#有些时候除了某些特定任务的执行，也需要获得任务执行后返回的结果，比如，我们可以给deliver_parcel函数新增一个return语句
+    #把派送的快递ID以及主线程计时开始到派送完成所消耗的时长进行返回
+
+#那么线程里要怎么获取到函数返回的结果呢？
+    #submit方法会返回一个Future对象，这个对象里会保存任务执行结果，包括可调用对象的返回值
+    #我们可以新增一个储存放回的Future对象的列表，然后当线程池里的所有任务都执行完成后，循环列表里的各个对象
+    #要获得任务的返回结果，我们可以调用Future对象result方法，得到函数返回值
+for future in future_list:
+    print(f"任务返回值:{future.result()}")
+
+#result方法同样造成线程等待，因为result会让调用线程暂停执行，直到获取到任务结果
+    #但是在现在代码里，因为调用result的时候所有任务都完成了，所以没有消耗额外的等待时间
