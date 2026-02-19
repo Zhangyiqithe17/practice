@@ -201,10 +201,36 @@ def reduce_balance(future_obj):
                 print(f"触发回调函数，余额={balance}")
             #现在每单报酬的结算都会发生在派送任务完成以后了
 
-with ThreadPoolExecutor(max_workers=5) as pool:
-    for i in range(10):
-        future = pool.submit(deliver_parcel, i + 1)
-        future.add_done_callback(reduce_balance)
+# with ThreadPoolExecutor(max_workers=5) as pool:
+#     for i in range(10):
+#         future = pool.submit(deliver_parcel, i + 1)
+#         future.add_done_callback(reduce_balance)
 
 # print(f"触发回调函数，余额={balance}")
+# print(f"总耗时：{time.time() - start:.2f}秒")
+
+#目前是在for循环里，用submit方法来依次提交单个任务，而线程池还提供了一个叫map的方法，可以一次性批量提交任务
+    #map接收的第一个参数仍然是像函数这种的可调用对象，而第二个参数可以是例如列表、元组在内的可迭代对象
+    #那么map方法就会把可迭代对象里的各个元素，依次作为前面可调用对象的参数进行传入，一次性提交多个任务
+    #但是和submit方法返回一个Future对象不同的是，map会返回一个包含批量提交任务的执行结果的迭代器，结果按照任务提交的顺序进行排序
+        #所以我们可以通过for循环依次迭代各个任务的返回值
+
+with ThreadPoolExecutor(max_workers=5) as pool:
+    results = pool.map(deliver_parcel,[1,2,3,4,5,6,7,8,9,10])
+
+for result in results:
+    print(f"任务返回值:{result}")
+
 print(f"总耗时：{time.time() - start:.2f}秒")
+
+#线程不能盲目地增加，因为线程之间的切换是存在时间和资源的消耗的
+    #那么创建多少线程是比较合适的？这个数量可以根据电脑的CPU核心数来计算
+    #对于IO密集型任务，也就是那些在执行过程中，大部分时间都在等待输入输出操作完成，而不是进行CPU计算的任务，通常可以用CPU核心数乘以2~5之间的范围
+        #像文件读写、网络请求、数据库查询之类的，都是IO密集型
+
+#在代码里，我们可以通过os模块的cpu_count函数，自动获取本地电脑的CPU核心数，然后乘以2~5之间的数字，自动计算出线程池的线程数上限
+    #具体乘以的数字可以通过实际代码运行观察耗时，来选出比较合适的值
+import os
+
+count = os.cpu_count()
+print(f"CPU数量{count}")
