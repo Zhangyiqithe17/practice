@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 
 #然后实例化一个Lock对象,赋值给movies_Lock
-movies_Lock = threading.lock()
+movies_Lock = threading.Lock()
 # 表示写入文件的类型的枚举类
 #因为MySQL是一种新的储存类型，所以在枚举类型中增加新的类型
 class WriteToType(Enum):
@@ -221,7 +221,7 @@ def process_movie_items(movie_item_list, movies, write_to):
         with movies_Lock:
             movies.append(movie_dict)
         #现在已经把对网页HTML内容的获取和解析改成用多线程处理了
-        # print(f"{movie_dict=}")
+        print(f"{movie_dict=}")
     return movies
 
 
@@ -280,18 +280,18 @@ def scrape_top250_movies(write_to):
                 #需要储存的原因是，get_html_content会返回发送请求后获取到的HTML内容,所以我们执行完之后要查看执行结果
 
                 #那么我们用for循环来迭代html_future_list里的每一个Future对象，然后调用对象的result方法，获取到各个页面的html源码
-                for html_future in html_future_list:
-                    tree = etree.HTML(html_future.result())
-                    # tree = etree.HTML(html)
-                    item_list = tree.xpath('//div[@class="item"]')
-                    # movies = process_movie_items(item_list, movies, write_to)
-                #到目前为止，获得网页html这个任务已经转换成多线程执行了
-                #接下来可以把网页的解析任务也转成多线程，具体是做法是：
-                    #先新建一个用于储存提交网页解析任务后，所返回的Future对象的列表，比如命名movie_items_future_list
-                    #然后调用线程池的submit方法，传入函数process_movie_items,以及也要把process_movie_items原本传入的参数：item_list, movies, write_to，也按顺序传入给submit
-                    movie_items_future = pool.submit(process_movie_items, item_list, movies, write_to)
-                    #返回的Future对象添加到movie_items_future_list里
-                    movie_items_future_list.append(movie_items_future)
+            for html_future in html_future_list:
+                tree = etree.HTML(html_future.result())
+                # tree = etree.HTML(html)
+                item_list = tree.xpath('//div[@class="item"]')
+                # movies = process_movie_items(item_list, movies, write_to)
+            #到目前为止，获得网页html这个任务已经转换成多线程执行了
+            #接下来可以把网页的解析任务也转成多线程，具体是做法是：
+                #先新建一个用于储存提交网页解析任务后，所返回的Future对象的列表，比如命名movie_items_future_list
+                #然后调用线程池的submit方法，传入函数process_movie_items,以及也要把process_movie_items原本传入的参数：item_list, movies, write_to，也按顺序传入给submit
+                movie_items_future = pool.submit(process_movie_items, item_list, movies, write_to)
+                #返回的Future对象添加到movie_items_future_list里
+                movie_items_future_list.append(movie_items_future)
 
                     #接下来同样用for循环依次迭代movie_items_future_list里的各个future对象，调用对象的result方法
                 for movie_items_future in movie_items_future_list:
@@ -303,6 +303,13 @@ def scrape_top250_movies(write_to):
 
                 #但是程序一旦涉及到多线程，就必须考虑到线程对共享变量的竞争，这里面的movies就是一个例子，所以还应该在process_movie_items函数里
                     #对涉及到movies列表的代码用锁进行保护
+
+        #可以看到结果展现的排序是乱掉的，如果想要让写入的电影按照排名的顺序，可以手动对movies变量里的元素进行排序，再把排序好的movies写入文件
+        #sort方法是一个专门用于给列表里元素排序的方法，但是我们要求排序是依据列表里面字典的"排名"键
+        #那么可以给sort传入一个函数，这个函数需要返回元素排序依据的值，那么我们可以传入一个匿名函数
+        #这个匿名函数接收列表里各个字典，然后返回列表里“排名”键对应的值，注意这里还需要做一个整数转换，因为排名本身是字符串
+        movies.sort(key=lambda x : int(x["排名"]))
+        #这样就可以把movies列表里的元素，按“排名”整数值从小到大进行排序了
         if write_to == WriteToType.CSV:
             write_movies_to_csv(movies)
         elif write_to == WriteToType.JSON:
@@ -321,7 +328,8 @@ def scrape_top250_movies(write_to):
 
 #最后为了验证写入逻辑，把主程序入口里的写入类型也修改为MySQL
 if __name__ == '__main__':
-    scrape_top250_movies(WriteToType.MYSQL)
-
+    # scrape_top250_movies(WriteToType.MYSQL)
+    #为了测试效果，改成下面这个
+    scrape_top250_movies(WriteToType.CSV)
 #在workbench窗口可以手动删除记录:
 #点击要操作的某行记录，鼠标右键，点击Delete Row(s),然后点击Apply，在弹出的窗口中继续Apply、Finish
