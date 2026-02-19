@@ -14,6 +14,10 @@ from openpyxl.styles import Font, Border, Side
 from peewee import MySQLDatabase, Model
 from peewee import AutoField,CharField,IntegerField,DecimalField
 
+#导入线程管理要用到的类
+from concurrent.futures import ThreadPoolExecutor
+
+
 # 表示写入文件的类型的枚举类
 #因为MySQL是一种新的储存类型，所以在枚举类型中增加新的类型
 class WriteToType(Enum):
@@ -241,15 +245,40 @@ def create_movie_dict(rank, title, score, year, rating_count, director_list, wri
     }
     return movie_dict
 
-
+#接下来找到scrape_top250_movies这个函数，它是实际执行爬虫的主要函数
+#思路是创建多条线程，然后让每个线程去负责一部分的网页爬取和解析，这样当某些线程在等待网络响应的时候，不会耽误另外一些线程获取HTML源代码
+    #可以更高效获取多个页面的数据
+    #可以把任务大致划分为获取网页HTML内容和解析网页内容
 def scrape_top250_movies(write_to):
     movies = []
+    #先来创建一个用来储存提交获取网页HTML任务后，所返回的Future对象的列表
+    html_future_list = []
     try:
-        for start in range(0, 250, 25):
-            html = get_html_content(url, start)
-            tree = etree.HTML(html)
-            item_list = tree.xpath('//div[@class="item"]')
-            movies = process_movie_items(item_list, movies, write_to)
+        #然后创建线程池
+        #要注意线程数量太多可能导致网站压力，豆瓣是一个流量比较多的网站，但是并发过多可能触发一些网站的反爬虫机制，导致IP被封禁
+        #而且如果我们爬取的数据量很大，并发还设置过高的话，可能造成某些中小型网站瘫痪或没法正常提供服务，万一网站运营方报j就不好
+        #所以我们可以先把线程数上限先调成3看看效果
+        #然后把原有的爬取各个页面HTML的for循环也放入到with块里
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            for start in range(0, 250, 25):
+                # html = get_html_content(url, start)
+                #获取HTML内容主要是通过这个get_html_content函数实现的，所以要把这里的串行请求改为并行请求
+                #调用线程池的submit方法，第一个参数传入get_html_content,作为线程要完成的任务
+                # 然后get_html_content原本会接收的两个参数url和start，也按照顺序传入到submit方法里
+                #submit方法会返回一个Future对象，我们添加到前面创建好的html_future_list里
+                html_future = pool.submit(get_html_content, url, start)
+                html_future_list.append(html_future)
+                #接下来修改XPath解析电影数据这部分，创建列表变量movie_items_future_list,用于储存submit方法返回的Future对象
+                #需要储存的原因是，get_html_content会返回发送请求后获取到的HTML内容,所以我们执行完之后要查看执行结果
+
+                #那么我们用for循环来迭代html_future_list里的每一个Future对象，然后调用对象的result方法，获取到各个页面的html源码
+                for html_future in html_future_list:
+                    tree = etree.HTML(html_future.result())
+                    # tree = etree.HTML(html)
+                    item_list = tree.xpath('//div[@class="item"]')
+                    movies = process_movie_items(item_list, movies, write_to)
+                #到目前为止，获得网页html这个任务已经转换成多线程执行了
+
         if write_to == WriteToType.CSV:
             write_movies_to_csv(movies)
         elif write_to == WriteToType.JSON:
