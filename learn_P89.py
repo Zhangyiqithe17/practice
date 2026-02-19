@@ -253,6 +253,7 @@ def scrape_top250_movies(write_to):
     movies = []
     #先来创建一个用来储存提交获取网页HTML任务后，所返回的Future对象的列表
     html_future_list = []
+    movie_items_future_list = []
     try:
         #然后创建线程池
         #要注意线程数量太多可能导致网站压力，豆瓣是一个流量比较多的网站，但是并发过多可能触发一些网站的反爬虫机制，导致IP被封禁
@@ -276,9 +277,21 @@ def scrape_top250_movies(write_to):
                     tree = etree.HTML(html_future.result())
                     # tree = etree.HTML(html)
                     item_list = tree.xpath('//div[@class="item"]')
-                    movies = process_movie_items(item_list, movies, write_to)
+                    # movies = process_movie_items(item_list, movies, write_to)
                 #到目前为止，获得网页html这个任务已经转换成多线程执行了
+                #接下来可以把网页的解析任务也转成多线程，具体是做法是：
+                    #先新建一个用于储存提交网页解析任务后，所返回的Future对象的列表，比如命名movie_items_future_list
+                    #然后调用线程池的submit方法，传入函数process_movie_items,以及也要把process_movie_items原本传入的参数：item_list, movies, write_to，也按顺序传入给submit
+                    movie_items_future = pool.submit(process_movie_items, item_list, movies, write_to)
+                    #返回的Future对象添加到movie_items_future_list里
+                    movie_items_future_list.append(movie_items_future)
 
+                    #接下来同样用for循环依次迭代movie_items_future_list里的各个future对象，调用对象的result方法
+                for movie_items_future in movie_items_future_list:
+                    movie_items_future.result()
+                    #这里目标不是获取运行结果，因为movies列表在process_movie_items函数调用的时候已经被写入了
+                    #这里调用result的原因是：如果子线程执行任务时抛出了异常，可以在这里得知结果
+                    #到目前为止，我们对函数scrape_top250_movies的修改就完成了
         if write_to == WriteToType.CSV:
             write_movies_to_csv(movies)
         elif write_to == WriteToType.JSON:
