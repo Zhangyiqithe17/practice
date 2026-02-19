@@ -104,14 +104,14 @@ def deliver_parcel(parcel_id):
     # reduce_balance()
     return parcel_id,time.time()-start
 
-def reduce_balance():
-    global balance
-    #with语句会自动管理锁的生命周期，进入with块时自动获取锁，退出with块时自动释放锁
-    #所以可以避免写代码时忘记调用锁的释放方法
-    with balance_lock:
-        previous_balance = balance
-        time.sleep(0.1)
-        balance = previous_balance - 10
+# def reduce_balance():
+#     global balance
+#     #with语句会自动管理锁的生命周期，进入with块时自动获取锁，退出with块时自动释放锁
+#     #所以可以避免写代码时忘记调用锁的释放方法
+#     with balance_lock:
+#         previous_balance = balance
+#         time.sleep(0.1)
+#         balance = previous_balance - 10
 
 start = time.time()
 future_list = []
@@ -144,16 +144,16 @@ future_list = []
 #而是调用线程池对象的submit方法，向线程池提交任务
 #如果用线程池，原先的逻辑不需要做太多改动，只需要改中间创建线程，和等待线程执行完成的逻辑
 
-with ThreadPoolExecutor(max_workers=5) as pool:
-    for i in range(10):
-        future = pool.submit(deliver_parcel, i+1)
-        future_list.append(future)
-    print("全部任务已提交")
+# with ThreadPoolExecutor(max_workers=5) as pool:
+#     for i in range(10):
+#         future = pool.submit(deliver_parcel, i+1)
+#         future_list.append(future)
+#     print("全部任务已提交")
 #上面调用了pool的submit方法向线程池提交任务，第一个参数同样是比如函数这种可调用对象，如果可调用对象也有需要接收的参数的话，我们从第二个参数开始依次按顺序传入参数值
 #任务提交之后，线程池会自动分配空闲线程去处理任务，线程会等待线程池分配新的任务
 
 # print(f"余额:{balance}")
-print(f"总耗时：{time.time() - start:.2f}秒")
+# print(f"总耗时：{time.time() - start:.2f}秒")
 #从打印结果可以看出，我们调用submit方法提交送快递的任务后，立刻有三个线程开始执行，任务完成后，这三个线程又会继续去完成被安排的后续任务
     #直到我们向线程池提交的所有任务都被执行完成
     #另外，虽然我们没有让主线程去等待子线程执行完成，但是总耗时的计算和输出也是没有问题的
@@ -167,8 +167,44 @@ print(f"总耗时：{time.time() - start:.2f}秒")
     #submit方法会返回一个Future对象，这个对象里会保存任务执行结果，包括可调用对象的返回值
     #我们可以新增一个储存放回的Future对象的列表，然后当线程池里的所有任务都执行完成后，循环列表里的各个对象
     #要获得任务的返回结果，我们可以调用Future对象result方法，得到函数返回值
-for future in future_list:
-    print(f"任务返回值:{future.result()}")
+# for future in future_list:
+#     print(f"任务返回值:{future.result()}")
 
 #result方法同样造成线程等待，因为result会让调用线程暂停执行，直到获取到任务结果
     #但是在现在代码里，因为调用result的时候所有任务都完成了，所以没有消耗额外的等待时间
+
+#在用线程池进行管理时，submit返回的future对象，还提供了一个add_done_callback方法，这个方法支持挂载回调函数
+    #意思就是我们可以在某个任务完成的时候，自动触发这个函数，所以回调函数本质上就是一个待命的函数
+#还需要让reduce_balance函数接收已完成的任务对象，也就是future对象作为参数
+# 但其实除了任务正常完成的情况，还有两种情况发生也会自动触发回调函数，包括任务抛出异常，以及任务被取消
+    #所以回调函数里，还需要对Future对象的状态进行判断，只有在任务正常完成的情况下，我们才应该进一步进行报酬结算的步骤
+    #判断的方法是：如果任务被取消，Future对象的cancelled方法会返回True
+    #如果任务出现异常，Future对象的exception方法会返回异常对象，我们可以进一步打印异常对象了解情况
+    #如果没有异常，exception方法会返回None，而如果任务正常完成，result方法会返回执行结果，那么接下来
+        #就可以在reduce_balance里，把之前写好的结算逻辑加入到任务执行成功的分支里
+def reduce_balance(future_obj):
+    if future_obj.cancelled():
+        with print_lock:
+            print("任务被取消")
+    elif future_obj.exception():
+        with print_lock:
+            print(f"任务出现异常:{future_obj.exception()}")
+    else :
+        with print_lock:
+            print(f"任务执行成功:{future_obj.result()}")
+        global balance
+        with balance_lock:
+            old_balance = balance
+            time.sleep(0.1)
+            balance = old_balance - 10
+            with print_lock:
+                print(f"触发回调函数，余额={balance}")
+            #现在每单报酬的结算都会发生在派送任务完成以后了
+
+with ThreadPoolExecutor(max_workers=5) as pool:
+    for i in range(10):
+        future = pool.submit(deliver_parcel, i + 1)
+        future.add_done_callback(reduce_balance)
+
+# print(f"触发回调函数，余额={balance}")
+print(f"总耗时：{time.time() - start:.2f}秒")
