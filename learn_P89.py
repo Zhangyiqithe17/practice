@@ -17,7 +17,11 @@ from peewee import AutoField,CharField,IntegerField,DecimalField
 #导入线程管理要用到的类
 from concurrent.futures import ThreadPoolExecutor
 
+#导入模块threading
+import threading
 
+#然后实例化一个Lock对象,赋值给movies_Lock
+movies_Lock = threading.lock()
 # 表示写入文件的类型的枚举类
 #因为MySQL是一种新的储存类型，所以在枚举类型中增加新的类型
 class WriteToType(Enum):
@@ -213,7 +217,10 @@ def process_movie_items(movie_item_list, movies, write_to):
         director_list = get_director_list(director_and_year_group_text[0])
         # 创建电影信息字典
         movie_dict = create_movie_dict(rank, title, score, year, rating_count, director_list, write_to)
-        movies.append(movie_dict)
+        #在调用movies.append方法这里，结合with语句自动管理锁的生命周期，也就是进入with块时自动获取锁，退出with块时自动释放锁
+        with movies_Lock:
+            movies.append(movie_dict)
+        #现在已经把对网页HTML内容的获取和解析改成用多线程处理了
         # print(f"{movie_dict=}")
     return movies
 
@@ -292,6 +299,10 @@ def scrape_top250_movies(write_to):
                     #这里目标不是获取运行结果，因为movies列表在process_movie_items函数调用的时候已经被写入了
                     #这里调用result的原因是：如果子线程执行任务时抛出了异常，可以在这里得知结果
                     #到目前为止，我们对函数scrape_top250_movies的修改就完成了
+
+
+                #但是程序一旦涉及到多线程，就必须考虑到线程对共享变量的竞争，这里面的movies就是一个例子，所以还应该在process_movie_items函数里
+                    #对涉及到movies列表的代码用锁进行保护
         if write_to == WriteToType.CSV:
             write_movies_to_csv(movies)
         elif write_to == WriteToType.JSON:
