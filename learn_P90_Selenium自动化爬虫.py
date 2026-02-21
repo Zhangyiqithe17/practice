@@ -47,5 +47,28 @@ from selenium.webdriver.chrome.service import Service#用来控制驱动程序�
         #固定的路径也方便我们未来把这个驱动程序替换成更新的版本
 
 #到目前为止，Selenium和浏览器驱动程序都已经就位，接下来就可以通过Python代码来启动Chrome浏览器了
+import time
+#实例化一个Service对象，参数传入驱动程序的文件路径
+# 注意：对于windows系统来说，因为路径里的反斜杠在python里有转义符的含义，所以这里我们用正斜杠作为分隔符
+    #另一个方法是可以在字符串前面加上r前缀，表示不做转义的原始字符串
+service = Service('D:/SeleniumDriver/chromedriver.exe')#r"D:\SeleniumDriver\chromedriver.exe"
+#然后我们实例化一个Chrome类对象driver，把刚才创建的Service对象作为参数，这样程序就能知道操作浏览器的时候要加载那个驱动程序了
+driver = webdriver.Chrome(service=service)
+#如果我们现在执行程序，可以看到操作系统自动打开一个浏览器窗口，然后就瞬间关闭了
+    #这是因为我们这个程序在启动浏览器后立刻就执行完成了，程序结束就意味着用程序启动的浏览器窗口会被关闭
 
+#最大化窗口
+driver.maximize_window()
 
+#启动浏览器后，下一步要做的是打开网页，那我们可以调用webdriver对象的get方法，传入要访问网页的URL
+#还可以进一步用Webdriver对象的title属性获取当前页面的标题,以及current_url属性获取当前的URL
+driver.get('http://www.douban.com')
+print(driver.title)
+print(driver.current_url)
+#为了让浏览器窗口能保持打开一段时间，我们导入time模块做延时
+time.sleep(10)
+#现在的效果已经可以打开浏览器并静止一段时间，但是这个打开的浏览器窗口并不是最大化的状态，这会出现什么问题呢？
+#我们后续通过代码实现鼠标移动安全验证滑块时，需要根据滑块所在的坐标判断移动的距离
+    #坐标指的是某个像素点在屏幕上的位置，浏览器窗口的大小会导致滑块在屏幕上的坐标值发生变化
+#所以我们可以在启动浏览器后，先把浏览器窗口最大化
+#那么我们可以在访问网页前，调用WebDriver对象的maximize_window方法
