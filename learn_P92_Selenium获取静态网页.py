@@ -50,7 +50,7 @@ for li in li_list:
         score = None
         print(f"出现异常：{e}")
 
-    print(f"排名：{rank}，简中标题：{title_zh}，原始标题：{title_original}，评分：{score}")
+    # print(f"排名：{rank}，简中标题：{title_zh}，原始标题：{title_original}，评分：{score}")
     # print(f"排名：{rank}，评分：{score}")
 
 #需要注意一点：WebElement的text属性不止包含本元素里所有文本，还会包含不论层级的所有子元素的文本
@@ -66,9 +66,9 @@ print(score_property)#从打印结果来看，获取到property属性值复合�
         #outerHTML表示获取元素完整的HTML，包括自身标签、子元素、文本、注释等等
         #innerHTML表示获取元素内部的HTML，包括子元素、文本、注释等，但不包括自身标签
 #比如，先查找到class值为“hd”的元素，然后分别打印出这个元素的outerHTML和innerHTML
-hd_element = li_list[1].find_element(By.CLASS_NAME,"hd")
-print(f"hd_element的innerHTML：{hd_element.get_attribute('innerHTML')}")
-print(f"hd_element的outerHTML：{hd_element.get_attribute('outerHTML')}")
+# hd_element = li_list[1].find_element(By.CLASS_NAME,"hd")
+# print(f"hd_element的innerHTML：{hd_element.get_attribute('innerHTML')}")
+# print(f"hd_element的outerHTML：{hd_element.get_attribute('outerHTML')}")
 
 #查找属于多个类的元素
 #在HTML代码里，我们经常能看到class值里包含空格的标签，这种情况说明这个元素同时属于多个类，，每个由空格分隔的都是一个独立的类名
@@ -79,5 +79,17 @@ print(f"hd_element的outerHTML：{hd_element.get_attribute('outerHTML')}")
 #运行后直接报错了，报错说明程序没有找到class值为“grid-16-8 clearfix”的元素，所以By.CLASS_NAME不支持同时用多个类名来查找元素
 
 #这种情况下，可以用By.CSS_SELECTOR，以及对应传入一个组合类选择器，，格式为“.类名1.类名2"，表示同时匹配有类名1、类名2这些类的元素
-div_grid = driver.find_element(By.CSS_SELECTOR,".grid-16-8.clearfix")
-print(div_grid.get_attribute("class"))
+# div_grid = driver.find_element(By.CSS_SELECTOR,".grid-16-8.clearfix")
+# print(div_grid.get_attribute("class"))
+
+#前面都是在通过By这个类里面的标识常量来查找元素，比如By.TAG_NAME、By.CLASS_NAME、By.CSS_SELECTOR
+# 但是对于没有特定属性值且嵌套比较深的元素来说，可能要不断通过外层的父元素来提取内层的子元素
+#前面我们是用Xpath来解决这个问题的，selenium也支持Xpath表达式，所以前面学的这里也能用到
+    #具体来说，我们可以给find_element或find_elements的第一个参数传入By.XPATH,然后第二个参数传入XPath表达式
+for li in li_list:
+    try:
+        rating_count = li.find_element(By.XPATH,".//div[@class = 'bd']/div[1]/span[4]").text
+    except Exception as e:
+        rating_count = None
+        print(f"出现异常：{e}")
+    print(f"共有{rating_count}")
