@@ -65,6 +65,38 @@ driver.maximize_window()
 driver.get('http://www.douban.com')
 print(driver.title)
 print(driver.current_url)
+
+#如果我们想要指挥浏览器再打开一个标签页，可以调用WebDriver对象的execute_script方法，参数传入JavaScript代码“window.open('');”
+driver.execute_script("window.open('');")#这个命令会打开一个新的空白标签页
+#如果我们想了解浏览器打开了多少标签页，可以获取WebDriver对象的window_handles属性的长度
+#window_handles属性本身是一个列表，里面储存了所有标签页的ID，所以我们可以进一步用len函数获取这个列表包含的元素数量，这就对应了打开的标签页数量
+windows_handle_list = driver.window_handles
+print(windows_handle_list)
+print(len(windows_handle_list))#这个打印结果是2，符合预期
+
+#在有多个标签页的时候，我们可以用Selenium实现标签页之间的切换操作，这在面对一些会自动打开新网页的网站很有用
+    # 例如有些网站在加载时会自动打开一个新的广告页面，那么当前活跃的标签页就不再是我们想要解析的目标网页，而是广告网页了
+#这时候我们就可以用WebDriver对象的switch_to属性获得一个SwitchTo对象,也就是上下文切换控制器，它专门用于处理标签页、iframe等上下文的切换
+    #然后继续调用SwitchTo对象的window方法，参数里面要传入标签页的ID字符串，比如如果我们要切换到第一个标签页，就传入windows_handle_list[0]
+#为了不让标签页的切换立刻发生而让我们看到效果，可以加延时
+time.sleep(3)
+driver.switch_to.window(windows_handle_list[0])
+print("切换到第一个标签页")
+time.sleep(3)
+driver.switch_to.window(windows_handle_list[1])
+print("切换到第二个标签页")
+
+driver.get('http://movie.douban.com/top250')
+print(f"当前页面标题：{driver.title}")
+print(f"当前页面URL：{driver.current_url}")
+
+time.sleep(3)
+#我们可以通过WebDriver对象打开标签页，也可以通过它关闭标签页，具体办法是调用close方法
+#close方法会关闭当前处于活跃状态的标签页，也就是当前被选中的标签页
+#如果我们想关闭某个特定的标签页，可以先切换到那个标签页然后再关闭
+driver.close()
+
+
 #为了让浏览器窗口能保持打开一段时间，我们导入time模块做延时
 time.sleep(10)
 #现在的效果已经可以打开浏览器并静止一段时间，但是这个打开的浏览器窗口并不是最大化的状态，这会出现什么问题呢？
@@ -72,3 +104,6 @@ time.sleep(10)
     #坐标指的是某个像素点在屏幕上的位置，浏览器窗口的大小会导致滑块在屏幕上的坐标值发生变化
 #所以我们可以在启动浏览器后，先把浏览器窗口最大化
 #那么我们可以在访问网页前，调用WebDriver对象的maximize_window方法
+
+
+
