@@ -57,7 +57,7 @@ for li in li_list:
     #比如可以试一下打印出列表里各个li元素的text属性
     # print(li.text)
 #当我们成功提取到元素后，不仅可以提取出元素文本，还可以提取出指定属性的属性值
-    #比如这个class值为“rating_num”的元素，如果我们想要提取出property属性的值，可以调用webElement对象的get_attribute,参数传入属性名
+    #比如这个class值为“rating_num”的元素，如果我们想要提取出property属性的值，可以调用webElement对象的get_attribute,参数传入属性名(包括class也可以这样操作)
 score_element = li_list[1].find_element(By.CLASS_NAME,"rating_num")
 score_property = score_element.get_attribute("property")
 print(score_property)#从打印结果来看，获取到property属性值复合我们预期
@@ -69,3 +69,15 @@ print(score_property)#从打印结果来看，获取到property属性值复合�
 hd_element = li_list[1].find_element(By.CLASS_NAME,"hd")
 print(f"hd_element的innerHTML：{hd_element.get_attribute('innerHTML')}")
 print(f"hd_element的outerHTML：{hd_element.get_attribute('outerHTML')}")
+
+#查找属于多个类的元素
+#在HTML代码里，我们经常能看到class值里包含空格的标签，这种情况说明这个元素同时属于多个类，，每个由空格分隔的都是一个独立的类名
+    #比如有一个class="grid-16-8 clearfix",这里grid-16-8和clearfix是两个不同的类，这种元素是否能借助By.CLASS_NAME查找到呢？
+
+# div_grid = driver.find_element(By.CLASS_NAME,"grid-16-8 clearfix")
+# print(div_grid.get_attribute("class"))
+#运行后直接报错了，报错说明程序没有找到class值为“grid-16-8 clearfix”的元素，所以By.CLASS_NAME不支持同时用多个类名来查找元素
+
+#这种情况下，可以用By.CSS_SELECTOR，以及对应传入一个组合类选择器，，格式为“.类名1.类名2"，表示同时匹配有类名1、类名2这些类的元素
+div_grid = driver.find_element(By.CSS_SELECTOR,".grid-16-8.clearfix")
+print(div_grid.get_attribute("class"))
