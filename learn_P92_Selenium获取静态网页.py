@@ -52,3 +52,20 @@ for li in li_list:
 
     print(f"排名：{rank}，简中标题：{title_zh}，原始标题：{title_original}，评分：{score}")
     # print(f"排名：{rank}，评分：{score}")
+
+#需要注意一点：WebElement的text属性不止包含本元素里所有文本，还会包含不论层级的所有子元素的文本
+    #比如可以试一下打印出列表里各个li元素的text属性
+    # print(li.text)
+#当我们成功提取到元素后，不仅可以提取出元素文本，还可以提取出指定属性的属性值
+    #比如这个class值为“rating_num”的元素，如果我们想要提取出property属性的值，可以调用webElement对象的get_attribute,参数传入属性名
+score_element = li_list[1].find_element(By.CLASS_NAME,"rating_num")
+score_property = score_element.get_attribute("property")
+print(score_property)#从打印结果来看，获取到property属性值复合我们预期
+#webElement对象的get_attribute方法，不止可以用来获取元素对象的属性，还可以获取元素的HTML
+    #只需要把传入的属性名换成传入字符串“outerHTML”或“innerHTML”
+        #outerHTML表示获取元素完整的HTML，包括自身标签、子元素、文本、注释等等
+        #innerHTML表示获取元素内部的HTML，包括子元素、文本、注释等，但不包括自身标签
+#比如，先查找到class值为“hd”的元素，然后分别打印出这个元素的outerHTML和innerHTML
+hd_element = li_list[1].find_element(By.CLASS_NAME,"hd")
+print(f"hd_element的innerHTML：{hd_element.get_attribute('innerHTML')}")
+print(f"hd_element的outerHTML：{hd_element.get_attribute('outerHTML')}")
