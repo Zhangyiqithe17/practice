@@ -93,3 +93,22 @@ for li in li_list:
         rating_count = None
         print(f"出现异常：{e}")
     print(f"共有{rating_count}")
+
+#有时候我们要批量获取的元素包含不同的属性值，比如豆瓣电影榜单里表示星数的span元素，calss值可能是rating5-t、rating45-t，也有可能是其他
+    #这种就无法通过固定的值精准查找了，这种情况我们仍然可以通过元素所在位置写出对应XPath表达式来查找
+    #但是根据位置定位元素也容易受到布局调整的影响，特别有些网页可能频繁变化前端页面
+    #另一种方法是利用By.CSS_SELECTOR的模糊匹配能力进行模糊查找，定位出那些属性值不完全确定的元素
+        #具体方式是：我们给find_element或find_elements的第一个参数传入By.CSS_SELECTOR，然后第二个参数传入一个模糊选择器
+        #模糊选择器的语法是这样的：
+        #如果要找出任何位置包含了某个子字符串的属性值，用“[属性名*='属性值']”
+            #比如要找出class里包含“btn-”的元素，对应的选择器是[class*='btn-']
+        #如果要找出以某个子字符串开头的属性值，用"[属性名^='属性值']"
+            #比如要找出使用HTTPS协议的链接，对应的选择是"[href^='https://']"
+        #如果要找出以某个子字符串结尾的属性值，用"[属性名$='属性值']"
+            #比如要找出使用HTTPS协议的链接，对应的选择是"[href$='.pdf']"
+
+    #所以要找出这些表示评分星数的span元素
+    #但是表示星数的标签下面，还有个class值是“rating_num”的标签，也是以“rating”开头，那么我们可以组合两个选择器
+    start_element_list = li.find_elements(By.CSS_SELECTOR,"[class*='rating'][class$='-t']")
+    for start_element in start_element_list:
+        print(start_element.get_attribute("outerHTML"))#把查找出的元素的html打印出来
