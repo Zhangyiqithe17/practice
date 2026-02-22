@@ -77,8 +77,8 @@ driver.get("http://www.douban.com/")
         #如果是正数，表示向右或者向下滚动，如果是负数，表示向左或者向上滚动
 
 #假设已经实现了通过Selenium访问豆瓣首页，那么接下来的目标是让程序控制浏览器向下滚动300像素的话，代码可以这样写：
-driver.execute_script("window.scrollBy(0,300);")
-time.sleep(3)
+# driver.execute_script("window.scrollBy(0,300);")
+# time.sleep(3)
 #运行程序后就会看到页面自动向下滚动的效果了
 
 #有时候我们不知道目标内容举例顶部有多远，这时候更推荐的方法是：让页面自动滚动到某个元素的位置，直到它出现在我们的可视区域中
@@ -88,9 +88,22 @@ time.sleep(3)
 
 #如果在豆瓣首页，想要把页面滚动到下方的读书板块，那这个区域对应的HTML元素的ID是anony-book，那么我们可以
     #先调用WebDriver对象的find_element方法找到那个元素
-anony_book_element = driver.find_element(By.ID,"anony-book")
+# anony_book_element = driver.find_element(By.ID,"anony-book")
     #然后调用execute_script方法，执行arguments[0].scrollIntoView()这句JavaScript代码，以及把这个元素也作为参数传进去
-driver.execute_script("arguments[0].scrollIntoView();",anony_book_element)
+# driver.execute_script("arguments[0].scrollIntoView();",anony_book_element)
 #那么程序运行后就可以看到，页面被自动滚动到了读书板块对用户可见的位置
 
+# time.sleep(3)
+
+#在鼠标操作中，最常见的是左键点击
+    #以豆瓣首页的登录模块为例子，在默认状态下显示的是“扫码登录”，而如果我们想切换到“密码登录”，就需要点击上方的密码登录选项卡
+    #这个选项卡对应的HTML元素是一个li标签，类名是"account-tab-account",那么我们可以这样实现点击操作
+        #首先还是通过find_element找到这个元素
+        #然后调用click方法，模拟鼠标左键点击（需要注意的是，因为这个登录模块在iframe里，所以不要忘了要先找到这个iframe,切换到iframe，
+            # 然后再在里面执行查找元素的操作）
+iframe_element = driver.find_element(By.XPATH,"//div[@class = 'login']/iframe[1]")
+driver.switch_to.frame(iframe_element)
+tab_account_element = driver.find_element(By.CLASS_NAME,"account-tab-account")
+tab_account_element.click()
 time.sleep(3)
+#运行后就可以看到，程序帮我们通过点击操作，自动切换到了密码登录的选项卡
