@@ -58,12 +58,11 @@ phone_element.send_keys("789")
 #如果想实现的是覆盖输入而不是追加输入的话，有多种方法可以实现
     #1、先用Ctrl+A全选输入框中的内容，然后按下删除键，对应Keys.BACKSPACE，最后向输入框中输入新的内容
 time.sleep(3)
-phone_element.send_keys(Keys.CONTROL+'a')
-phone_element.send_keys(Keys.BACKSPACE)#这一步也可以省略，因为全选后输入新的内容也会把之前输入的覆盖掉
-phone_element.send_keys("17176666")
+# phone_element.send_keys(Keys.CONTROL+'a')
+# phone_element.send_keys(Keys.BACKSPACE)#这一步也可以省略，因为全选后输入新的内容也会把之前输入的覆盖掉
+# phone_element.send_keys("17176666")
             #但这个方法的缺点是：写代码时要额外考虑操作系统
-    
-
-
-
+    #2、所以更推荐的删除方法是调用元素的clear方法，这个方法可以直接清空输入框，不需要模拟键盘操作,也不需要考虑操作系统差异
+phone_element.clear()
+phone_element.send_keys("17176666")
 time.sleep(3)
