@@ -118,11 +118,11 @@ tab_account_element.click()
 #接下来还是要找到目标元素，我们可以看到手机号/邮箱输入框对应这个<input>标签，name属性的值是username
     #那么在切换到iframe，点击密码登录选项卡后，调用find_element找到这个输入框，以及调用send_keys方法，随便输入一些文字
 username_element = driver.find_element(By.ID,"username")
-username_element.send_keys("用户名")
+# username_element.send_keys("用户名")
 
 #接下来是动作链的关键：要先实例化一个ActionChains对象来构建动作链，参数传入driver，也就是用来控制浏览器的WebDriver实例
     #这样ActionChains才知道要在哪个浏览器里执行这些动作
-actions = ActionChains(driver)
+# actions = ActionChains(driver)
 #下一步是添加双击动作
     #调用ActionChains对象的double_click方法，把我们想要双击的元素传进去
     #但是double_click方法只是添加了动作，并没有执行
@@ -134,7 +134,16 @@ actions = ActionChains(driver)
 #如果想要把输入的内容全部选中，要怎么操作?
     #鼠标连续三次快速点击，就可以让浏览器把整段文字全部选中，selenium同样可以模拟这样的行为，只需要在刚才的双击动作后，再加一个单击动作，就可以模拟三击效果
     #即，可以把一个.double_click(...)和一个.click(...)操作串联起来，构成一个连续动作链，最后统一用.perform()执行整个链条
-actions.double_click(username_element).click(username_element).perform()
+# actions.double_click(username_element).click(username_element).perform()
 #三击运行成功
 
+#除了点击，还可以用selenium模拟拖拽动作
+#ActionChains对象的drag_and_drop方法，可以模拟把一个元素拖拽到另一个元素上
+#豆瓣首页，如果把“找回密码”拖拽到手机号/邮箱输入框里面，页面会把这个链接的地址自动填入到输入框，这个交互就可以用drag_and_drop实现
+    #还是需要先找到对应的元素
+link_fwd_element = driver.find_element(By.CLASS_NAME,"fwd-link")
+    #接下来创建动作链对象
+actions = ActionChains(driver)
+    #然后调用动作链对象提供的drag_and_drop方法，把a元素作为拖动源，输入框作为拖动到的目标，最后通过perform方法把这条动作链实际执行出来
+actions.drag_and_drop(link_fwd_element,username_element).perform()
 time.sleep(3)
