@@ -9,12 +9,16 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+import time
 
 service = Service('D:/SeleniumDriver/chromedriver.exe')
 driver = webdriver.Chrome(service=service)
 driver.maximize_window()
-driver.get('https://www.51job.com/pc/search')
-
+driver.get('https://we.51job.com/pc/search')
+#对此最简单的方法是暂停运行，也就是在get方法执行完成后，让程序暂停n秒，这个n的值可以根据网速和页面加载速度来主观决定
+    #但总之目标是让动态数据在程序暂停的时间里，能够加载到网页上
+time.sleep(5)
+#虽然能成功，但是这种方式并不是很稳健，因为非常容易受网络环境波动和加载数据大小的影响
 job_element_list = driver.find_elements(By.CSS_SELECTOR,".jname.text-cut")
 #然后把查找出的span元素的数量和里面的文本内容打印出来
 print(f"共找到{len(job_element_list)}个元素")
