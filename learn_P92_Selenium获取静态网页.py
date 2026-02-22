@@ -110,5 +110,8 @@ for li in li_list:
     #所以要找出这些表示评分星数的span元素
     #但是表示星数的标签下面，还有个class值是“rating_num”的标签，也是以“rating”开头，那么我们可以组合两个选择器
     start_element_list = li.find_elements(By.CSS_SELECTOR,"[class*='rating'][class$='-t']")
-    for start_element in start_element_list:
+    for start_element in start_element_list:#因为是find_elements，所以要用for循环把列表里的元素遍历出来
         print(start_element.get_attribute("outerHTML"))#把查找出的元素的html打印出来
+
+
+
