@@ -23,16 +23,16 @@ driver.get("http://www.douban.com/")
 
 #所以我们需要先进行这个切换到iframe的操作，这里可以先用Xpath定位这个iframe元素
     #它是class值为“login”的div下的第一个iframe
-iframe_element = driver.find_element(By.XPATH,"//div[@class = 'login']/iframe[1]")
+# iframe_element = driver.find_element(By.XPATH,"//div[@class = 'login']/iframe[1]")
 #然后调用driver的switch_to.frame方法，切换到iframe
     #这里的switch_to.frame是Selenium提供的专门用来“切换上下文”的方法，可以理解为视角从“主页”这个大房子，转移到iframe这个小房间，只有进入其内部才能继续访问里面的元素
-driver.switch_to.frame(iframe_element)
-phone_element = driver.find_element(By.NAME,"phone")#根据name的值找到手机号输入框
-code_element = driver.find_element(By.ID,"code")#验证码输入框
-phone_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
-code_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
-
-time.sleep(1)
+# driver.switch_to.frame(iframe_element)
+# phone_element = driver.find_element(By.NAME,"phone")#根据name的值找到手机号输入框
+# code_element = driver.find_element(By.ID,"code")#验证码输入框
+# phone_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
+# code_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
+#
+# time.sleep(1)
 
 #除了向输入框输入字符串，我们还可以模拟键盘上一些“功能键”，比如回车键、删除键、全选键之类的操作
 #接下来可以模拟按下回车键，让程序自动提交表单
@@ -53,16 +53,30 @@ time.sleep(1)
 #运行程序后可以看到，验证码输入框里的内容被全选了
 
 #如果想要往已经填写内容的输入框里，继续输入字符串，只需要再一次调用对象的send_keys方法，send_keys的默认行为是不清空原内容，而是在末尾追加
-phone_element.send_keys("789")
+# phone_element.send_keys("789")
 
 #如果想实现的是覆盖输入而不是追加输入的话，有多种方法可以实现
     #1、先用Ctrl+A全选输入框中的内容，然后按下删除键，对应Keys.BACKSPACE，最后向输入框中输入新的内容
-time.sleep(3)
+# time.sleep(3)
 # phone_element.send_keys(Keys.CONTROL+'a')
 # phone_element.send_keys(Keys.BACKSPACE)#这一步也可以省略，因为全选后输入新的内容也会把之前输入的覆盖掉
 # phone_element.send_keys("17176666")
             #但这个方法的缺点是：写代码时要额外考虑操作系统
     #2、所以更推荐的删除方法是调用元素的clear方法，这个方法可以直接清空输入框，不需要模拟键盘操作,也不需要考虑操作系统差异
-phone_element.clear()
-phone_element.send_keys("17176666")
+# phone_element.clear()
+# phone_element.send_keys("17176666")
+# time.sleep(3)
+
+#Selenium模拟鼠标操作
+    #鼠标操作能帮我们完成网页上的点击、双击、右键、悬停、拖拽等动作，让程序像真人一样和网页进行更复杂的交互
+        #比如点击登录按钮、拖动滑块验证码、拖拽文件到上传区域
+    #在访问一些内容比较多的网页时，比如以瀑布流形式加载的页面，我们经常需要手动滚动页面，才能看到更多内容，selenium也可以实现滚动操作
+
+#具体来说，我们可以通过driver的execute_script方法，执行一段JavaScript代码来控制页面滚动
+    #最常用的控制滚动的JavaScript代码是window.scrollBy(x,y);(要注意结尾有一个分号)，其中x表示横向滚动的像素数，y表示纵向滚动的像素数
+        #如果是正数，表示向右或者向下滚动，如果是负数，表示向左或者向上滚动
+
+#假设已经实现了通过Selenium访问豆瓣首页，那么接下来的目标是让程序控制浏览器向下滚动300像素的话，代码可以这样写：
+driver.execute_script("window.scrollBy(0,300);")
 time.sleep(3)
+#运行程序后就会看到页面自动向下滚动的效果了
