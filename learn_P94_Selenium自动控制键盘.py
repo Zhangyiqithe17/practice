@@ -38,7 +38,7 @@ time.sleep(1)
 #接下来可以模拟按下回车键，让程序自动提交表单
 #这个操作很简单，我们只需要借助Keys类，它提供了很多常见按键的模拟方式，所以我们需要先对Keys类进行导入
 #然后调用验证码输入框对象的send_keys方法，然后传入Keys.ENTER作为参数，这就相当于在验证码输入框里按下回车了
-code_element.send_keys(Keys.ENTER)
+# code_element.send_keys(Keys.ENTER)
 #除了回车键之外，Keys类还有很多按键
     #Keys.ENTER表示回车
     #Keys.BACKSPACE表示退格
@@ -46,11 +46,24 @@ code_element.send_keys(Keys.ENTER)
 
 #还可以在输入框里用快捷键Ctrl+A实现全选操作
     #还是调用send_keys方法，参数传入Keys.CONTROL，表示control键，以及“+”号，后面跟上字符“a”，组合起来就等效于按下了Ctrl+A来全选内容
-code_element.send_keys(Keys.CONTROL+'a')
+# code_element.send_keys(Keys.CONTROL+'a')
     #举一反三，参数传入Keys.CONTROL+'c'可以实现复制，参数传入Keys.CONTROL+'v'可以实现粘贴等
     #如果电脑是MacOS系统，需要把Keys.CONTROL替换成Keys.COMMAND
 
 #运行程序后可以看到，验证码输入框里的内容被全选了
+
+#如果想要往已经填写内容的输入框里，继续输入字符串，只需要再一次调用对象的send_keys方法，send_keys的默认行为是不清空原内容，而是在末尾追加
+phone_element.send_keys("789")
+
+#如果想实现的是覆盖输入而不是追加输入的话，有多种方法可以实现
+    #1、先用Ctrl+A全选输入框中的内容，然后按下删除键，对应Keys.BACKSPACE，最后向输入框中输入新的内容
+time.sleep(3)
+phone_element.send_keys(Keys.CONTROL+'a')
+phone_element.send_keys(Keys.BACKSPACE)#这一步也可以省略，因为全选后输入新的内容也会把之前输入的覆盖掉
+phone_element.send_keys("17176666")
+            #但这个方法的缺点是：写代码时要额外考虑操作系统
+    
+
 
 
 time.sleep(3)
