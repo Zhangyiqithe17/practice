@@ -9,6 +9,13 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import time
 from selenium.webdriver.common.keys import Keys
+#还有一些网页交互需要双击鼠标才能触发，比如在输入框里双击选中内容、在表格里双击进入编辑模式等
+#selenium提供了一个专门用于处理复杂鼠标交互的类：ActionChains
+    #它可以把一系列鼠标和键盘动作组合成一条动作链，比如在某个元素上按下鼠标不松开，然后移动鼠标拖拽该元素到指定位置，然后再松开鼠标，这三个动作就是一个动作链
+    #虽然拖拽、悬停等涉及多个动作组合，但双击是最简单的一种，因为只包含一个动作
+    #假如我们目标是在豆瓣密码登录模块上的手机号/邮箱输入框里，输入一些内容，然后通过双击操作选中文字，那么首先需要
+        #从Selenium.webdriver.common.action_chains模块里，导入ActionChains
+from selenium.webdriver.common.action_chains import ActionChains
 
 service = Service('D:\SeleniumDriver\chromedriver.exe')
 driver = webdriver.Chrome(service=service)
@@ -105,5 +112,23 @@ iframe_element = driver.find_element(By.XPATH,"//div[@class = 'login']/iframe[1]
 driver.switch_to.frame(iframe_element)
 tab_account_element = driver.find_element(By.CLASS_NAME,"account-tab-account")
 tab_account_element.click()
-time.sleep(3)
+# time.sleep(3)
 #运行后就可以看到，程序帮我们通过点击操作，自动切换到了密码登录的选项卡
+
+#接下来还是要找到目标元素，我们可以看到手机号/邮箱输入框对应这个<input>标签，name属性的值是username
+    #那么在切换到iframe，点击密码登录选项卡后，调用find_element找到这个输入框，以及调用send_keys方法，随便输入一些文字
+username_element = driver.find_element(By.ID,"username")
+username_element.send_keys("用户名")
+
+#接下来是动作链的关键：要先实例化一个ActionChains对象来构建动作链，参数传入driver，也就是用来控制浏览器的WebDriver实例
+    #这样ActionChains才知道要在哪个浏览器里执行这些动作
+actions = ActionChains(driver)
+#下一步是添加双击动作
+    #调用ActionChains对象的double_click方法，把我们想要双击的元素传进去
+    #但是double_click方法只是添加了动作，并没有执行
+    #所以添加完所有需要执行的动作后，我们还需要继续调用perform方法来实际执行这些动作
+actions.double_click(username_element).perform()
+#所以总结下来就是：我们需要创建动作链对象、给动作链添加操作，以及执行动作链
+#运行后就可以看到程序在目标输入框里执行了双击操作，于是输入内容里最后一个字被自动选中了
+
+time.sleep(3)
