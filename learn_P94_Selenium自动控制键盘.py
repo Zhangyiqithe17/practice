@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import time
+from selenium.webdriver.common.keys import Keys
 
 service = Service('D:\SeleniumDriver\chromedriver.exe')
 driver = webdriver.Chrome(service=service)
@@ -30,5 +31,17 @@ phone_element = driver.find_element(By.NAME,"phone")#根据name的值找到手�
 code_element = driver.find_element(By.ID,"code")#验证码输入框
 phone_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
 code_element.send_keys("123456")#调用元素的send_keys方法，参数传入要在输入框里输入的内容
+
+time.sleep(1)
+
+#除了向输入框输入字符串，我们还可以模拟键盘上一些“功能键”，比如回车键、删除键、全选键之类的操作
+#接下来可以模拟按下回车键，让程序自动提交表单
+#这个操作很简单，我们只需要借助Keys类，它提供了很多常见按键的模拟方式，所以我们需要先对Keys类进行导入
+#然后调用验证码输入框对象的send_keys方法，然后传入Keys.ENTER作为参数，这就相当于在验证码输入框里按下回车了
+code_element.send_keys(Keys.ENTER)
+#除了回车键之外，Keys类还有很多按键
+    #Keys.ENTER表示回车
+    #Keys.BACKSPACE表示退格
+    #Keys.CONTROL表示Ctrl等等
 
 time.sleep(3)
