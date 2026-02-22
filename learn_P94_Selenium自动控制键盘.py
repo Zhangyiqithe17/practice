@@ -44,4 +44,13 @@ code_element.send_keys(Keys.ENTER)
     #Keys.BACKSPACE表示退格
     #Keys.CONTROL表示Ctrl等等
 
+#还可以在输入框里用快捷键Ctrl+A实现全选操作
+    #还是调用send_keys方法，参数传入Keys.CONTROL，表示control键，以及“+”号，后面跟上字符“a”，组合起来就等效于按下了Ctrl+A来全选内容
+code_element.send_keys(Keys.CONTROL+'a')
+    #举一反三，参数传入Keys.CONTROL+'c'可以实现复制，参数传入Keys.CONTROL+'v'可以实现粘贴等
+    #如果电脑是MacOS系统，需要把Keys.CONTROL替换成Keys.COMMAND
+
+#运行程序后可以看到，验证码输入框里的内容被全选了
+
+
 time.sleep(3)
