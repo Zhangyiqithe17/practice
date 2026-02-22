@@ -127,8 +127,14 @@ actions = ActionChains(driver)
     #调用ActionChains对象的double_click方法，把我们想要双击的元素传进去
     #但是double_click方法只是添加了动作，并没有执行
     #所以添加完所有需要执行的动作后，我们还需要继续调用perform方法来实际执行这些动作
-actions.double_click(username_element).perform()
+# actions.double_click(username_element).perform()
 #所以总结下来就是：我们需要创建动作链对象、给动作链添加操作，以及执行动作链
 #运行后就可以看到程序在目标输入框里执行了双击操作，于是输入内容里最后一个字被自动选中了
+
+#如果想要把输入的内容全部选中，要怎么操作?
+    #鼠标连续三次快速点击，就可以让浏览器把整段文字全部选中，selenium同样可以模拟这样的行为，只需要在刚才的双击动作后，再加一个单击动作，就可以模拟三击效果
+    #即，可以把一个.double_click(...)和一个.click(...)操作串联起来，构成一个连续动作链，最后统一用.perform()执行整个链条
+actions.double_click(username_element).click(username_element).perform()
+#三击运行成功
 
 time.sleep(3)
