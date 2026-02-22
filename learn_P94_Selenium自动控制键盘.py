@@ -80,3 +80,17 @@ driver.get("http://www.douban.com/")
 driver.execute_script("window.scrollBy(0,300);")
 time.sleep(3)
 #运行程序后就会看到页面自动向下滚动的效果了
+
+#有时候我们不知道目标内容举例顶部有多远，这时候更推荐的方法是：让页面自动滚动到某个元素的位置，直到它出现在我们的可视区域中
+    #具体做法仍然是：调用driver的execute_script方法，来执行这段JavaScript代码
+    #这次要执行的代码："arguments[0].scrollIntoView();",其中arguments[0]表示传入的第一个参数
+    # scrollIntoView()表示让传入的那个元素滚动到页面的可视区域中
+
+#如果在豆瓣首页，想要把页面滚动到下方的读书板块，那这个区域对应的HTML元素的ID是anony-book，那么我们可以
+    #先调用WebDriver对象的find_element方法找到那个元素
+anony_book_element = driver.find_element(By.ID,"anony-book")
+    #然后调用execute_script方法，执行arguments[0].scrollIntoView()这句JavaScript代码，以及把这个元素也作为参数传进去
+driver.execute_script("arguments[0].scrollIntoView();",anony_book_element)
+#那么程序运行后就可以看到，页面被自动滚动到了读书板块对用户可见的位置
+
+time.sleep(3)
