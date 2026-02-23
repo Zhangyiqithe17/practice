@@ -141,9 +141,36 @@ username_element = driver.find_element(By.ID,"username")
 #ActionChains对象的drag_and_drop方法，可以模拟把一个元素拖拽到另一个元素上
 #豆瓣首页，如果把“找回密码”拖拽到手机号/邮箱输入框里面，页面会把这个链接的地址自动填入到输入框，这个交互就可以用drag_and_drop实现
     #还是需要先找到对应的元素
-link_fwd_element = driver.find_element(By.CLASS_NAME,"fwd-link")
+# link_fwd_element = driver.find_element(By.CLASS_NAME,"fwd-link")
     #接下来创建动作链对象
 actions = ActionChains(driver)
     #然后调用动作链对象提供的drag_and_drop方法，把a元素作为拖动源，输入框作为拖动到的目标，最后通过perform方法把这条动作链实际执行出来
-actions.drag_and_drop(link_fwd_element,username_element).perform()
+# actions.drag_and_drop(link_fwd_element,username_element).perform()
+
+#drag_and_drop并不适用所有情况，比如常见的滑动验证码
+    #要把滑块移动到缺口位置，而这个缺口位置并不是一个可以选中的独立元素，那么我们需要用更细颗粒度的鼠标操作，模拟出三个步骤
+        #1、点击并按住拼图
+        #2、向右移动指定距离
+        #3、释放鼠标
+#点击并按住拼图块或滑块，我们可以用动作链提供的click_and_hold方法，向右移动指定距离，我们可以用move_by_offset方法，释放鼠标可以用release方法
+username_element.send_keys("123@qq.com")
+username_element = driver.find_element(By.ID,"password")
+username_element.send_keys("password")
+username_element.send_keys(Keys.ENTER)
+#输入符合格式的邮箱和密码后，就会出现滑块
+#观察页面结构后可以发现，拼图块是一个div标签，类名是“tc-fg-item”，但是我们不能直接通过find_element定位到这个拼图块
+    #因为他嵌套在一个ID为tcaptcha_iframe_dy的iframe里
+    #要定位这个拼图块，得先切换浏览器上下文到这个iframe，同样是用driver的switch_to.frame方法
+    #对于带有ID的iframe，我们可以直接传入字符串形式的ID作为参数
+driver.switch_to.frame("tcaptcha_iframe_dy")
+    #切换到这个iframe后，调用find_element来定位验证码拼图块元素
+puzzle_piece_element = driver.find_element(By.CLASS_NAME,"tc-fg-item")
+    #接下来就可以使用动作链拖动操作了
+    #实例化一个ActionChains对象
+actions = ActionChains(driver)
+    #click_and_hold参数传入要操作的元素对象
+    #move_by_offset传入第一个参数表示水平方向移动的距离，第二个参数表示垂直方向移动的像素
+        #当然因为滑动验证码的正确位置是随机生成的，所以固定位置不一定能完成滑块验证
+    #release不需要传入任何参数
+actions.click_and_hold(puzzle_piece_element).move_by_offset(50,0).release(puzzle_piece_element).perform()
 time.sleep(3)
